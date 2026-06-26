@@ -18,8 +18,8 @@ Parameters:
     Default: ''
     Description: >-
       S3 bucket namespace (typically the AWS account ID) for globally unique
-      bucket names. When provided: holon-viewer-{namespace}-{env}-static-assets.
-      When empty: holon-viewer-{env}-static-assets.
+      bucket names. When provided: robosystems-holon-viewer-{namespace}-{env}-static-assets.
+      When empty: robosystems-holon-viewer-{env}-static-assets.
 
   ServiceTag:
     Type: String
@@ -43,8 +43,8 @@ Resources:
     Properties:
       BucketName: !If
         - HasNamespace
-        - !Sub holon-viewer-${Namespace}-${Environment}-static-assets
-        - !Sub holon-viewer-${Environment}-static-assets
+        - !Sub robosystems-holon-viewer-${Namespace}-${Environment}-static-assets
+        - !Sub robosystems-holon-viewer-${Environment}-static-assets
       PublicAccessBlockConfiguration:
         BlockPublicAcls: true
         BlockPublicPolicy: true
@@ -65,7 +65,7 @@ Resources:
     Type: AWS::CloudFront::OriginAccessControl
     Properties:
       OriginAccessControlConfig:
-        Name: !Sub holon-viewer-${Environment}-oac
+        Name: !Sub robosystems-holon-viewer-${Environment}-oac
         OriginAccessControlOriginType: s3
         SigningBehavior: always
         SigningProtocol: sigv4
