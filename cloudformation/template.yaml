@@ -1,7 +1,4 @@
-Description: >-
-  RoboSystems Holon Viewer - pure-static SPA hosting. A private S3 bucket
-  (no public access) fronted by a CloudFront distribution via Origin Access
-  Control (OAC). No App Runner / ECR / Route53 - the viewer is a static client.
+Description: RoboSystems Holon Viewer - S3 + CloudFront CDN
 
 Parameters:
   Environment:
@@ -9,9 +6,7 @@ Parameters:
     Default: prod
     AllowedValues:
       - prod
-      - staging
-      - dev
-    Description: Environment name (prod, staging, or dev)
+    Description: Environment name (prod or staging)
 
   Namespace:
     Type: String
@@ -31,8 +26,21 @@ Parameters:
     Default: Viewer
     Description: Tag value for Component identification
 
+  DomainName:
+    Type: String
+    Default: ''
+    Description: >-
+      Optional custom domain (e.g. viewer.robosystems.ai). Blank serves on the
+      default CloudFront domain with no ACM cert and no Route53 record.
+
+  HostedZoneId:
+    Type: String
+    Default: ''
+    Description: Route53 hosted zone ID for DomainName (required when DomainName is set).
+
 Conditions:
   HasNamespace: !Not [!Equals [!Ref Namespace, '']]
+  HasCustomDomain: !Not [!Equals [!Ref DomainName, '']]
 
 Resources:
   # ── Private S3 bucket (origin) ──────────────────────────────────────────────
@@ -70,6 +78,28 @@ Resources:
         SigningBehavior: always
         SigningProtocol: sigv4
 
+  # ── ACM certificate for the custom domain (conditional; us-east-1; DNS-validated) ──
+  # With HostedZoneId set, CloudFormation auto-creates the DNS validation records
+  # and waits for issuance. The stack must be deployed in us-east-1 (CloudFront).
+  SiteCertificate:
+    Type: AWS::CertificateManager::Certificate
+    Condition: HasCustomDomain
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      DomainName: !Ref DomainName
+      ValidationMethod: DNS
+      DomainValidationOptions:
+        - DomainName: !Ref DomainName
+          HostedZoneId: !Ref HostedZoneId
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: !Ref ServiceTag
+        - Key: Component
+          Value: !Ref ComponentTag
+
   # ── CloudFront distribution ─────────────────────────────────────────────────
   CloudFrontDistribution:
     Type: AWS::CloudFront::Distribution
@@ -80,6 +110,10 @@ Resources:
         HttpVersion: http2and3
         IPV6Enabled: true
         PriceClass: PriceClass_100 # North America + Europe (cost-optimized)
+        Aliases: !If
+          - HasCustomDomain
+          - - !Ref DomainName
+          - !Ref AWS::NoValue
         DefaultRootObject: index.html
         Origins:
           - Id: S3Origin
@@ -106,8 +140,12 @@ Resources:
             ResponseCode: 200
             ResponsePagePath: /index.html
             ErrorCachingMinTTL: 10
-        ViewerCertificate:
-          CloudFrontDefaultCertificate: true
+        ViewerCertificate: !If
+          - HasCustomDomain
+          - AcmCertificateArn: !Ref SiteCertificate
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          - CloudFrontDefaultCertificate: true
       Tags:
         - Key: Environment
           Value: !Ref Environment
@@ -134,6 +172,31 @@ Resources:
               StringEquals:
                 AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
 
+  # ── Route53 alias records for the custom domain (conditional; A + AAAA for IPv6) ──
+  SiteDNSRecordA:
+    Type: AWS::Route53::RecordSet
+    Condition: HasCustomDomain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: A
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2 # CloudFront's fixed hosted zone id
+        EvaluateTargetHealth: false
+
+  SiteDNSRecordAAAA:
+    Type: AWS::Route53::RecordSet
+    Condition: HasCustomDomain
+    Properties:
+      HostedZoneId: !Ref HostedZoneId
+      Name: !Ref DomainName
+      Type: AAAA
+      AliasTarget:
+        DNSName: !GetAtt CloudFrontDistribution.DomainName
+        HostedZoneId: Z2FDTNDATAQYW2
+        EvaluateTargetHealth: false
+
 Outputs:
   StaticAssetsBucketName:
     Description: S3 bucket for the static build output
@@ -149,4 +212,7 @@ Outputs:
 
   ViewerUrl:
     Description: The deployed viewer URL
-    Value: !Sub https://${CloudFrontDistribution.DomainName}
+    Value: !If
+      - HasCustomDomain
+      - !Sub https://${DomainName}
+      - !Sub https://${CloudFrontDistribution.DomainName}
