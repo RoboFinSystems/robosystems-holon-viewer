@@ -31,7 +31,7 @@ on:
           - staging
           - dev
       domain:
-        description: 'Custom domain (e.g. viewer.robosystems.ai). Blank = CloudFront URL.'
+        description: 'Custom domain override. Blank → VIEWER_DOMAIN var (prod) or CloudFront URL.'
         required: false
         default: ''
         type: string
@@ -75,10 +75,14 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Resolve custom domain
-        # When a domain is given, look up its Route53 hosted zone; otherwise the
-        # stack serves on the CloudFront URL (blank DomainName/HostedZoneId).
+        # Domain precedence: the 'domain' input overrides; otherwise prod falls
+        # back to the VIEWER_DOMAIN repo var. When a domain resolves, look up its
+        # Route53 hosted zone; blank serves on the CloudFront URL.
         run: |
           DOMAIN="${{ inputs.domain }}"
+          if [ -z "$DOMAIN" ] && [ "${{ inputs.environment }}" = "prod" ]; then
+            DOMAIN="${{ vars.VIEWER_DOMAIN }}"
+          fi
           if [ -z "$DOMAIN" ]; then
             echo "No custom domain — serving on the CloudFront URL."
             { echo "DOMAIN_NAME="; echo "HOSTED_ZONE_ID="; } >> "$GITHUB_ENV"

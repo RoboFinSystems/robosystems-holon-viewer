@@ -1,8 +1,4 @@
-Description: >-
-  RoboSystems Holon Viewer - pure-static SPA hosting. A private S3 bucket
-  (no public access) fronted by a CloudFront distribution via Origin Access
-  Control (OAC). An optional custom domain (ACM cert in us-east-1 + Route53
-  alias) is wired conditionally; a blank DomainName serves on the CloudFront URL.
+Description: RoboSystems Holon Viewer - S3 + CloudFront CDN
 
 Parameters:
   Environment:
@@ -10,9 +6,7 @@ Parameters:
     Default: prod
     AllowedValues:
       - prod
-      - staging
-      - dev
-    Description: Environment name (prod, staging, or dev)
+    Description: Environment name (prod or staging)
 
   Namespace:
     Type: String
