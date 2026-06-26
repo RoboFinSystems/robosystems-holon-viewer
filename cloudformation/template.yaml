@@ -1,0 +1,152 @@
+Description: >-
+  RoboSystems Holon Viewer - pure-static SPA hosting. A private S3 bucket
+  (no public access) fronted by a CloudFront distribution via Origin Access
+  Control (OAC). No App Runner / ECR / Route53 - the viewer is a static client.
+
+Parameters:
+  Environment:
+    Type: String
+    Default: prod
+    AllowedValues:
+      - prod
+      - staging
+      - dev
+    Description: Environment name (prod, staging, or dev)
+
+  Namespace:
+    Type: String
+    Default: ''
+    Description: >-
+      S3 bucket namespace (typically the AWS account ID) for globally unique
+      bucket names. When provided: holon-viewer-{namespace}-{env}-static-assets.
+      When empty: holon-viewer-{env}-static-assets.
+
+  ServiceTag:
+    Type: String
+    Default: HolonViewer
+    Description: Tag value for Service identification
+
+  ComponentTag:
+    Type: String
+    Default: Viewer
+    Description: Tag value for Component identification
+
+Conditions:
+  HasNamespace: !Not [!Equals [!Ref Namespace, '']]
+
+Resources:
+  # ── Private S3 bucket (origin) ──────────────────────────────────────────────
+  StaticAssetsBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Delete
+    UpdateReplacePolicy: Retain
+    Properties:
+      BucketName: !If
+        - HasNamespace
+        - !Sub holon-viewer-${Namespace}-${Environment}-static-assets
+        - !Sub holon-viewer-${Environment}-static-assets
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: !Ref ServiceTag
+        - Key: Component
+          Value: !Ref ComponentTag
+        - Key: CreatedBy
+          Value: CloudFormation
+
+  # ── CloudFront Origin Access Control (signs requests to the private bucket) ──
+  CloudFrontOAC:
+    Type: AWS::CloudFront::OriginAccessControl
+    Properties:
+      OriginAccessControlConfig:
+        Name: !Sub holon-viewer-${Environment}-oac
+        OriginAccessControlOriginType: s3
+        SigningBehavior: always
+        SigningProtocol: sigv4
+
+  # ── CloudFront distribution ─────────────────────────────────────────────────
+  CloudFrontDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Comment: !Sub Holon Viewer ${Environment} Distribution
+        Enabled: true
+        HttpVersion: http2and3
+        IPV6Enabled: true
+        PriceClass: PriceClass_100 # North America + Europe (cost-optimized)
+        DefaultRootObject: index.html
+        Origins:
+          - Id: S3Origin
+            DomainName: !GetAtt StaticAssetsBucket.RegionalDomainName
+            OriginAccessControlId: !Ref CloudFrontOAC
+            S3OriginConfig:
+              OriginAccessIdentity: ''
+        DefaultCacheBehavior:
+          TargetOriginId: S3Origin
+          ViewerProtocolPolicy: redirect-to-https
+          Compress: true
+          AllowedMethods: [GET, HEAD]
+          CachedMethods: [GET, HEAD]
+          # Managed "CachingOptimized" cache policy
+          CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+        # The viewer is a single-page app; serve index.html for any unmatched
+        # path (and for the 403 OAC returns on missing keys) so it never 404s.
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 10
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+            ErrorCachingMinTTL: 10
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Service
+          Value: !Ref ServiceTag
+        - Key: Component
+          Value: !Ref ComponentTag
+
+  # ── Bucket policy: only this CloudFront distribution may read objects ────────
+  StaticAssetsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref StaticAssetsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontServicePrincipal
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:GetObject
+            Resource: !Sub ${StaticAssetsBucket.Arn}/*
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+
+Outputs:
+  StaticAssetsBucketName:
+    Description: S3 bucket for the static build output
+    Value: !Ref StaticAssetsBucket
+
+  CloudFrontDistributionId:
+    Description: CloudFront distribution ID (used for cache invalidation)
+    Value: !Ref CloudFrontDistribution
+
+  CloudFrontDomainName:
+    Description: CloudFront distribution domain name (the public URL)
+    Value: !GetAtt CloudFrontDistribution.DomainName
+
+  ViewerUrl:
+    Description: The deployed viewer URL
+    Value: !Sub https://${CloudFrontDistribution.DomainName}

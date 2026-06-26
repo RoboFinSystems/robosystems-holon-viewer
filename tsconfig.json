@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "types": ["node"],
+    "baseUrl": ".",
+    "paths": {
+      "@robosystems/report-components": ["../robosystems-report-components/src/index.ts"],
+      "@robosystems/report-components/adapters": [
+        "../robosystems-report-components/src/adapters/index.ts"
+      ]
+    }
+  },
+  "include": ["src", "test"]
+}

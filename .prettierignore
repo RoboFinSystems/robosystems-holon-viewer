@@ -1,0 +1,38 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+build/
+coverage/
+
+# Generated files
+sdk/
+*.gen.ts
+*.gen.js
+*.gen.d.ts
+*.d.ts
+
+# Cache and temp files
+.cache/
+.tmp/
+.vite/
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# Environment files
+.env*
+
+# Test coverage
+coverage/
+*.lcov
+
+# Fixtures
+public/samples/
+
+# GitHub
+.github/

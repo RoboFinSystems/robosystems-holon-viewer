@@ -1,0 +1,323 @@
+/* RoboSystems branding for the Holon Viewer.
+ *
+ * Palette + fonts copied from the RoboSystems app (see BRANDING.md). The
+ * `--rs-*` custom properties below are also what `@robosystems/report-components`
+ * reads to theme its statement tables and fact inspector — so setting them here
+ * brands the shared components automatically. */
+
+/* ── Fonts ── */
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/SpaceGrotesk/SpaceGrotesk-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/SpaceGrotesk/SpaceGrotesk-Medium.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/SpaceGrotesk/SpaceGrotesk-SemiBold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Space Grotesk';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/SpaceGrotesk/SpaceGrotesk-Bold.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'Orbitron';
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url('/fonts/Orbitron/Orbitron-Bold.ttf') format('truetype');
+}
+
+:root {
+  /* Palette (RoboSystems brand) */
+  --rs-primary-50: #eff6ff;
+  --rs-primary-100: #dbeafe;
+  --rs-primary-300: #93bbfd;
+  --rs-primary-500: #3b7af5;
+  --rs-primary-700: #1d4ed8;
+  --rs-primary-800: #1b3a57;
+  --rs-secondary-500: #06b6d4;
+  --rs-accent-500: #6366f1;
+  --rs-gray-50: #f9fafb;
+  --rs-gray-100: #f3f4f6;
+  --rs-gray-200: #e5e7eb;
+  --rs-gray-400: #9ca3af;
+  --rs-gray-500: #6b7280;
+  --rs-gray-700: #374151;
+  --rs-gray-900: #111827;
+  --rs-gradient-brand: linear-gradient(135deg, #06b6d4, #3b7af5 55%, #6366f1);
+
+  /* Font stacks */
+  --rs-font-sans:
+    'Space Grotesk', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, sans-serif;
+  --rs-font-heading: 'Orbitron', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --rs-font-mono:
+    'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono',
+    monospace;
+
+  /* Semantic tokens consumed by @robosystems/report-components */
+  --rs-text: var(--rs-gray-900);
+  --rs-muted: var(--rs-gray-500);
+  --rs-border: var(--rs-gray-200);
+  --rs-border-strong: var(--rs-gray-400);
+  --rs-subtotal-bg: var(--rs-gray-50);
+  --rs-selected-bg: var(--rs-primary-100);
+  --rs-panel-bg: #ffffff;
+  --rs-success: #047857;
+  --rs-error: #dc2626;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--rs-font-sans);
+  color: var(--rs-text);
+  background: var(--rs-gray-100);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── App shell ── */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  background: #ffffff;
+  border-bottom: 1px solid var(--rs-border);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.brand-logo {
+  height: 36px;
+  width: auto;
+}
+
+.brand-name {
+  font-family: var(--rs-font-heading);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+}
+
+.brand-tag {
+  font-size: 0.75rem;
+  color: var(--rs-muted);
+}
+
+.mode-switch {
+  display: inline-flex;
+  border: 1px solid var(--rs-border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.mode-switch button {
+  border: none;
+  background: #ffffff;
+  padding: 0.45rem 1.1rem;
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--rs-gray-700);
+}
+
+.mode-switch button[aria-selected='true'] {
+  background: var(--rs-gradient-brand);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.app-main {
+  flex: 1;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.app-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--rs-border);
+  font-size: 0.75rem;
+  color: var(--rs-muted);
+  text-align: center;
+  background: #ffffff;
+}
+
+/* ── File mode ── */
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  text-align: center;
+  padding: 3.5rem 2rem;
+  margin-top: 2rem;
+  border: 2px dashed var(--rs-border-strong);
+  border-radius: 16px;
+  background: #ffffff;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.dropzone.dragging {
+  border-color: var(--rs-primary-500);
+  background: var(--rs-primary-50);
+}
+
+.dropzone h2 {
+  font-family: var(--rs-font-heading);
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.dropzone p {
+  margin: 0;
+  color: var(--rs-muted);
+}
+
+.btn {
+  border: none;
+  border-radius: 10px;
+  padding: 0.6rem 1.2rem;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--rs-gradient-brand);
+  color: #ffffff;
+}
+
+.btn-secondary {
+  background: #ffffff;
+  color: var(--rs-primary-700);
+  border: 1px solid var(--rs-border-strong);
+}
+
+.file-input-label {
+  display: inline-block;
+  cursor: pointer;
+}
+
+.file-input-label input {
+  display: none;
+}
+
+.loaded-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 1rem;
+  margin-bottom: 1.5rem;
+  background: #ffffff;
+  border: 1px solid var(--rs-border);
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.error {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  border-radius: 10px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--rs-error);
+  font-size: 0.85rem;
+}
+
+.hint {
+  font-size: 0.75rem;
+  color: var(--rs-muted);
+}
+
+/* ── SEC mode (stub) ── */
+.panel-card {
+  max-width: 520px;
+  margin: 2rem auto;
+  padding: 1.75rem;
+  background: #ffffff;
+  border: 1px solid var(--rs-border);
+  border-radius: 16px;
+}
+
+.panel-card h2 {
+  font-family: var(--rs-font-heading);
+  margin-top: 0;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  background: var(--rs-secondary-500);
+  color: #ffffff;
+}
+
+.field {
+  display: block;
+  margin: 1rem 0;
+}
+
+.field label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--rs-gray-700);
+  margin-bottom: 0.35rem;
+}
+
+.field input {
+  width: 100%;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--rs-border-strong);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.field input:disabled {
+  background: var(--rs-gray-50);
+  color: var(--rs-muted);
+}
