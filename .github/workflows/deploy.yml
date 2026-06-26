@@ -5,7 +5,7 @@ name: Deploy
 # Mirrors the RoboSystems app deploy conventions (OIDC via vars.AWS_ROLE_ARN,
 # CloudFormation-managed infra) but collapsed to a single stack because the
 # viewer is a pure-static SPA — no App Runner / ECR. A custom domain is optional
-# (the 'domain' input): when set, the stack adds an ACM cert + Route53 alias.
+# (the VIEWER_DOMAIN repo var): when set, the stack adds an ACM cert + Route53 alias.
 #
 # PRECONDITIONS (one-time, before the first successful run):
 #   1. @robosystems/report-components is PUBLISHED to npm, and this app's
@@ -28,13 +28,6 @@ on:
         type: choice
         options:
           - prod
-          - staging
-          - dev
-      domain:
-        description: 'Custom domain override. Blank → VIEWER_DOMAIN var (prod) or CloudFront URL.'
-        required: false
-        default: ''
-        type: string
 
 permissions:
   id-token: write
@@ -75,16 +68,12 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Resolve custom domain
-        # Domain precedence: the 'domain' input overrides; otherwise prod falls
-        # back to the VIEWER_DOMAIN repo var. When a domain resolves, look up its
-        # Route53 hosted zone; blank serves on the CloudFront URL.
+        # Domain comes from the VIEWER_DOMAIN repo var (set once, no per-run
+        # override). Unset → serves on the CloudFront URL.
         run: |
-          DOMAIN="${{ inputs.domain }}"
-          if [ -z "$DOMAIN" ] && [ "${{ inputs.environment }}" = "prod" ]; then
-            DOMAIN="${{ vars.VIEWER_DOMAIN }}"
-          fi
+          DOMAIN="${{ vars.VIEWER_DOMAIN }}"
           if [ -z "$DOMAIN" ]; then
-            echo "No custom domain — serving on the CloudFront URL."
+            echo "VIEWER_DOMAIN unset — serving on the CloudFront URL."
             { echo "DOMAIN_NAME="; echo "HOSTED_ZONE_ID="; } >> "$GITHUB_ENV"
             exit 0
           fi
