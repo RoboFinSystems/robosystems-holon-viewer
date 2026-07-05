@@ -2,27 +2,38 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Generate SDK",
+      "label": "Dev",
       "type": "shell",
-      "command": "ROBOSYSTEMS_API_URL=${input:apiUrl} npm run generate",
+      "command": "npm run dev",
+      "isBackground": true,
       "problemMatcher": []
     },
     {
-      "label": "Install Dependencies",
+      "label": "Build",
       "type": "shell",
-      "command": "npm install",
+      "command": "npm run build",
+      "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
     },
     {
-      "label": "Update Dependencies",
+      "label": "Preview",
       "type": "shell",
-      "command": "npm update",
+      "command": "npm run preview",
+      "isBackground": true,
       "problemMatcher": []
     },
     {
       "label": "Test",
       "type": "shell",
       "command": "npm run test",
+      "group": { "kind": "test", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Test Watch",
+      "type": "shell",
+      "command": "npm run test:watch",
+      "isBackground": true,
       "problemMatcher": []
     },
     {
@@ -56,15 +67,21 @@
       "problemMatcher": []
     },
     {
-      "label": "Create Feature",
+      "label": "Install Dependencies",
       "type": "shell",
-      "command": "npm run feature:create ${input:branchType} ${input:branchName} ${input:baseBranch} ${input:updateDependencies}",
+      "command": "npm install",
       "problemMatcher": []
     },
     {
-      "label": "Create Release",
+      "label": "Update Dependencies",
       "type": "shell",
-      "command": "npm run release:create ${input:versionType}",
+      "command": "npm update",
+      "problemMatcher": []
+    },
+    {
+      "label": "Create Feature",
+      "type": "shell",
+      "command": "npm run feature:create ${input:branchType} ${input:branchName} ${input:baseBranch} ${input:updateDependencies}",
       "problemMatcher": []
     },
     {
@@ -76,13 +93,6 @@
     }
   ],
   "inputs": [
-    {
-      "id": "versionType",
-      "type": "pickString",
-      "description": "Choose version type:",
-      "default": "patch",
-      "options": ["major", "minor", "patch"]
-    },
     {
       "id": "branchType",
       "type": "pickString",
@@ -108,12 +118,6 @@
       "description": "Update dependencies after creating branch:",
       "default": "no",
       "options": ["yes", "no"]
-    },
-    {
-      "id": "apiUrl",
-      "type": "promptString",
-      "description": "Enter API URL for SDK generation:",
-      "default": "http://localhost:8000/openapi.json"
     }
   ]
 }

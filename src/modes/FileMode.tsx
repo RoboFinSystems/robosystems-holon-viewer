@@ -1,15 +1,18 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { ReportView } from '@robosystems/report-components'
-import { parseTrig } from '@robosystems/report-components/adapters'
+import { parseJsonld, parseTrig } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
 import { useCallback, useState } from 'react'
 
-const SAMPLE_URL = '/samples/seattle-method-case-1.holon.trig'
+const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
 
 /**
- * Mode A — offline, zero-auth. Drop (or pick) a `holon.trig`; the library's
- * trig adapter parses it client-side and the shared components render it. No
- * network, no key, no backend.
+ * Mode A — offline, zero-auth. Drop (or pick) a report holon; the library
+ * parses it client-side and the shared components render it. No network, no
+ * key, no backend. Both holon syntaxes are accepted — dataset-form JSON-LD
+ * (`holon.jsonld`, the API-native default) and TriG (`holon.trig`, the RDF
+ * export) — sniffed by content: a leading `{`/`[` routes to the JSON-LD adapter,
+ * otherwise the trig adapter.
  */
 export function FileMode() {
   const [report, setReport] = useState<NormalizedReport | null>(null)
@@ -17,9 +20,12 @@ export function FileMode() {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
 
-  const loadText = useCallback((text: string, name: string) => {
+  const loadText = useCallback(async (text: string, name: string) => {
     try {
-      const parsed = parseTrig(text)
+      // Content sniff: dataset-form JSON-LD starts with `{` (or `[`); a TriG
+      // holon starts with `@prefix` / a graph IRI. Either resolves to the same
+      // NormalizedReport.
+      const parsed = /^\s*[{[]/.test(text) ? await parseJsonld(text) : parseTrig(text)
       if (!parsed.informationBlocks.length) {
         setReport(null)
         setError('No Information Blocks found — is this a holon report?')
@@ -58,7 +64,7 @@ export function FileMode() {
   const loadSample = useCallback(() => {
     fetch(SAMPLE_URL)
       .then((r) => r.text())
-      .then((text) => loadText(text, 'seattle-method-case-1.holon.trig'))
+      .then((text) => loadText(text, 'seattle-method-case-1.holon.jsonld'))
       .catch((e) => setError(`Could not load sample: ${e}`))
   }, [loadText])
 
@@ -97,9 +103,10 @@ export function FileMode() {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
       >
-        <h2>Open a holon.trig</h2>
+        <h2>Open a holon</h2>
         <p>
-          Drag &amp; drop a report holon here, or choose a file. Everything runs in your browser.
+          Drag &amp; drop a report holon here, or choose a file — <code>holon.jsonld</code> or{' '}
+          <code>holon.trig</code>. Everything runs in your browser.
         </p>
         <div
           style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
@@ -108,7 +115,7 @@ export function FileMode() {
             Choose file
             <input
               type="file"
-              accept=".trig,.ttl,text/turtle"
+              accept=".jsonld,.json,.trig,.ttl,application/ld+json,text/turtle"
               onChange={(e) => onFiles(e.target.files)}
             />
           </label>

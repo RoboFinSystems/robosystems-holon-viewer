@@ -14,7 +14,7 @@ export function App() {
           <img className="brand-logo" src="/images/logos/robosystems.png" alt="RoboSystems" />
           <div>
             <div className="brand-name">Holon Viewer</div>
-            <div className="brand-tag">financial-report renderer for holon.trig</div>
+            <div className="brand-tag">financial-report renderer for holon.jsonld</div>
           </div>
         </div>
         <nav className="mode-switch" role="tablist" aria-label="Source mode">

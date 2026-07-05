@@ -6,13 +6,7 @@ package-lock.json
 dist/
 build/
 coverage/
-
-# Generated files
-sdk/
-*.gen.ts
-*.gen.js
-*.gen.d.ts
-*.d.ts
+*.lcov
 
 # Cache and temp files
 .cache/
@@ -27,11 +21,7 @@ sdk/
 # Environment files
 .env*
 
-# Test coverage
-coverage/
-*.lcov
-
-# Fixtures
+# Fixtures (verbatim sample data — don't reformat)
 public/samples/
 
 # GitHub
