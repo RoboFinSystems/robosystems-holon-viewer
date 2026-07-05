@@ -2,23 +2,9 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "Dev",
+      "label": "RoboSystems Holon Viewer Dev",
       "type": "shell",
       "command": "npm run dev",
-      "isBackground": true,
-      "problemMatcher": []
-    },
-    {
-      "label": "Build",
-      "type": "shell",
-      "command": "npm run build",
-      "group": { "kind": "build", "isDefault": true },
-      "problemMatcher": []
-    },
-    {
-      "label": "Preview",
-      "type": "shell",
-      "command": "npm run preview",
       "isBackground": true,
       "problemMatcher": []
     },
@@ -27,13 +13,6 @@
       "type": "shell",
       "command": "npm run test",
       "group": { "kind": "test", "isDefault": true },
-      "problemMatcher": []
-    },
-    {
-      "label": "Test Watch",
-      "type": "shell",
-      "command": "npm run test:watch",
-      "isBackground": true,
       "problemMatcher": []
     },
     {
