@@ -1,18 +1,15 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { ReportView } from '@robosystems/report-components'
-import { parseJsonld, parseTrig } from '@robosystems/report-components/adapters'
+import { parseJsonld } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
 import { useCallback, useState } from 'react'
 
 const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
 
 /**
- * Mode A — offline, zero-auth. Drop (or pick) a report holon; the library
- * parses it client-side and the shared components render it. No network, no
- * key, no backend. Both holon syntaxes are accepted — dataset-form JSON-LD
- * (`holon.jsonld`, the API-native default) and TriG (`holon.trig`, the RDF
- * export) — sniffed by content: a leading `{`/`[` routes to the JSON-LD adapter,
- * otherwise the trig adapter.
+ * Mode A — offline, zero-auth. Drop (or pick) a report's `holon.jsonld`; the
+ * library parses it client-side and the shared components render it. No
+ * network, no key, no backend.
  */
 export function FileMode() {
   const [report, setReport] = useState<NormalizedReport | null>(null)
@@ -22,10 +19,7 @@ export function FileMode() {
 
   const loadText = useCallback(async (text: string, name: string) => {
     try {
-      // Content sniff: dataset-form JSON-LD starts with `{` (or `[`); a TriG
-      // holon starts with `@prefix` / a graph IRI. Either resolves to the same
-      // NormalizedReport.
-      const parsed = /^\s*[{[]/.test(text) ? await parseJsonld(text) : parseTrig(text)
+      const parsed = await parseJsonld(text)
       if (!parsed.informationBlocks.length) {
         setReport(null)
         setError('No Information Blocks found — is this a holon report?')
@@ -103,10 +97,10 @@ export function FileMode() {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
       >
-        <h2>Open a holon</h2>
+        <h2>Open a holon.jsonld</h2>
         <p>
-          Drag &amp; drop a report holon here, or choose a file — <code>holon.jsonld</code> or{' '}
-          <code>holon.trig</code>. Everything runs in your browser.
+          Drag &amp; drop a report&apos;s <code>holon.jsonld</code> here, or choose a file.
+          Everything runs in your browser.
         </p>
         <div
           style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
@@ -115,7 +109,7 @@ export function FileMode() {
             Choose file
             <input
               type="file"
-              accept=".jsonld,.json,.trig,.ttl,application/ld+json,text/turtle"
+              accept=".jsonld,.json,application/ld+json"
               onChange={(e) => onFiles(e.target.files)}
             />
           </label>
