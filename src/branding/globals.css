@@ -138,11 +138,6 @@ body {
   letter-spacing: 0.04em;
 }
 
-.brand-tag {
-  font-size: 0.75rem;
-  color: var(--rs-muted);
-}
-
 .mode-switch {
   display: inline-flex;
   border: 1px solid var(--rs-border);

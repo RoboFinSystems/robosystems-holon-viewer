@@ -24,10 +24,7 @@ export function App() {
       <header className="app-header">
         <div className="brand">
           <img className="brand-logo" src="/images/logos/robosystems.png" alt="RoboSystems" />
-          <div>
-            <div className="brand-name">RoboSystems Holon Viewer</div>
-            <div className="brand-tag">financial-report renderer for holon.jsonld</div>
-          </div>
+          <div className="brand-name">RoboSystems Holon Viewer</div>
         </div>
 
         <div className="header-right">
