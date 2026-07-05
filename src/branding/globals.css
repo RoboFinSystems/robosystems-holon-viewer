@@ -110,7 +110,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
   padding: 0.75rem 1.5rem;
   background: #ffffff;
   border-bottom: 1px solid var(--rs-border);
@@ -242,17 +243,39 @@ body {
   display: none;
 }
 
-.loaded-bar {
+/* Right cluster of the app header: the loaded-file chip (when a report is
+ * open) + the File/SEC mode switch. */
+.header-right {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 1rem;
-  padding: 0.6rem 1rem;
-  margin-bottom: 1.5rem;
-  background: #ffffff;
+  min-width: 0;
+}
+
+.header-loaded {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+  padding: 0.35rem 0.35rem 0.35rem 0.85rem;
+  background: var(--rs-gray-50);
   border: 1px solid var(--rs-border);
-  border-radius: 10px;
-  font-size: 0.85rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--rs-gray-700);
+}
+
+.header-loaded-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 46ch;
+}
+
+.btn-sm {
+  padding: 0.35rem 0.85rem;
+  font-size: 0.8rem;
+  border-radius: 999px;
 }
 
 .error {

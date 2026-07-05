@@ -6,33 +6,40 @@ import { useCallback, useState } from 'react'
 
 const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
 
+interface FileModeProps {
+  /** The loaded report, owned by `App` (so the header can show it). */
+  report: NormalizedReport | null
+  /** Called when a holon parses successfully. */
+  onLoaded: (report: NormalizedReport, fileName: string) => void
+}
+
 /**
  * Mode A — offline, zero-auth. Drop (or pick) a report's `holon.jsonld`; the
  * library parses it client-side and the shared components render it. No
- * network, no key, no backend.
+ * network, no key, no backend. The loaded-file chip + "Load another" live in
+ * the app header (`App` owns that state); this renders the dropzone, then the
+ * report once one is loaded.
  */
-export function FileMode() {
-  const [report, setReport] = useState<NormalizedReport | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
+export function FileMode({ report, onLoaded }: FileModeProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
 
-  const loadText = useCallback(async (text: string, name: string) => {
-    try {
-      const parsed = await parseJsonld(text)
-      if (!parsed.informationBlocks.length) {
-        setReport(null)
-        setError('No Information Blocks found — is this a holon report?')
-        return
+  const loadText = useCallback(
+    async (text: string, name: string) => {
+      try {
+        const parsed = await parseJsonld(text)
+        if (!parsed.informationBlocks.length) {
+          setError('No Information Blocks found — is this a holon report?')
+          return
+        }
+        onLoaded(parsed, name)
+        setError(null)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e))
       }
-      setReport(parsed)
-      setFileName(name)
-      setError(null)
-    } catch (e) {
-      setReport(null)
-      setError(e instanceof Error ? e.message : String(e))
-    }
-  }, [])
+    },
+    [onLoaded]
+  )
 
   const onFiles = useCallback(
     (files: FileList | null) => {
@@ -63,27 +70,7 @@ export function FileMode() {
   }, [loadText])
 
   if (report) {
-    return (
-      <div>
-        <div className="loaded-bar">
-          <span>
-            Loaded <strong>{fileName}</strong>
-            {report.reportId ? <span className="hint"> · {report.reportId}</span> : null}
-          </span>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              setReport(null)
-              setFileName(null)
-            }}
-          >
-            Load another
-          </button>
-        </div>
-        <ReportView report={report} />
-      </div>
-    )
+    return <ReportView report={report} />
   }
 
   return (
