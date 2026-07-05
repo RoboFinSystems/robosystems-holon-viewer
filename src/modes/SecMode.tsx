@@ -29,7 +29,7 @@ export function SecMode() {
         Fetch report
       </button>
       <p className="hint" style={{ marginTop: '1rem' }}>
-        For now, use <strong>File</strong> mode to open a <code>holon.trig</code> offline.
+        For now, use <strong>File</strong> mode to open a <code>holon.jsonld</code> offline.
       </p>
     </div>
   )

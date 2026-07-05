@@ -18,7 +18,7 @@
     "feature:create": "./bin/create-feature.sh"
   },
   "dependencies": {
-    "@robosystems/report-components": "^0.1.1",
+    "@robosystems/report-components": "0.1.4",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

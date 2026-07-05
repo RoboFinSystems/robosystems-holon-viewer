@@ -1,38 +1,53 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { ReportView } from '@robosystems/report-components'
-import { parseTrig } from '@robosystems/report-components/adapters'
+import { parseJsonld } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
-const SAMPLE_URL = '/samples/seattle-method-case-1.holon.trig'
+const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
+
+interface FileModeProps {
+  /** The loaded report, owned by `App` (so the header can show it). */
+  report: NormalizedReport | null
+  /** Called when a holon parses successfully. */
+  onLoaded: (report: NormalizedReport, fileName: string) => void
+}
 
 /**
- * Mode A — offline, zero-auth. Drop (or pick) a `holon.trig`; the library's
- * trig adapter parses it client-side and the shared components render it. No
- * network, no key, no backend.
+ * Mode A — offline, zero-auth. Drop (or pick) a report's `holon.jsonld`; the
+ * library parses it client-side and the shared components render it. No
+ * network, no key, no backend. The loaded-file chip + "Load another" live in
+ * the app header (`App` owns that state); this renders the dropzone, then the
+ * report once one is loaded.
  */
-export function FileMode() {
-  const [report, setReport] = useState<NormalizedReport | null>(null)
-  const [fileName, setFileName] = useState<string | null>(null)
+export function FileMode({ report, onLoaded }: FileModeProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
 
-  const loadText = useCallback((text: string, name: string) => {
-    try {
-      const parsed = parseTrig(text)
-      if (!parsed.informationBlocks.length) {
-        setReport(null)
-        setError('No Information Blocks found — is this a holon report?')
-        return
+  // Clear any error whenever the loaded report changes — in particular when
+  // "Load another" (App's onReset) sets report back to null — so a stale
+  // message from a superseded/failed load can't surface on the empty dropzone.
+  // A failed load leaves report unchanged (null → null), so its error persists.
+  useEffect(() => {
+    setError(null)
+  }, [report])
+
+  const loadText = useCallback(
+    async (text: string, name: string) => {
+      try {
+        const parsed = await parseJsonld(text)
+        if (!parsed.informationBlocks.length) {
+          setError('No Information Blocks found — is this a holon report?')
+          return
+        }
+        onLoaded(parsed, name)
+        setError(null)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e))
       }
-      setReport(parsed)
-      setFileName(name)
-      setError(null)
-    } catch (e) {
-      setReport(null)
-      setError(e instanceof Error ? e.message : String(e))
-    }
-  }, [])
+    },
+    [onLoaded]
+  )
 
   const onFiles = useCallback(
     (files: FileList | null) => {
@@ -58,32 +73,12 @@ export function FileMode() {
   const loadSample = useCallback(() => {
     fetch(SAMPLE_URL)
       .then((r) => r.text())
-      .then((text) => loadText(text, 'seattle-method-case-1.holon.trig'))
+      .then((text) => loadText(text, 'seattle-method-case-1.holon.jsonld'))
       .catch((e) => setError(`Could not load sample: ${e}`))
   }, [loadText])
 
   if (report) {
-    return (
-      <div>
-        <div className="loaded-bar">
-          <span>
-            Loaded <strong>{fileName}</strong>
-            {report.reportId ? <span className="hint"> · {report.reportId}</span> : null}
-          </span>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={() => {
-              setReport(null)
-              setFileName(null)
-            }}
-          >
-            Load another
-          </button>
-        </div>
-        <ReportView report={report} />
-      </div>
-    )
+    return <ReportView report={report} />
   }
 
   return (
@@ -97,9 +92,10 @@ export function FileMode() {
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
       >
-        <h2>Open a holon.trig</h2>
+        <h2>Open a holon.jsonld</h2>
         <p>
-          Drag &amp; drop a report holon here, or choose a file. Everything runs in your browser.
+          Drag &amp; drop a report&apos;s <code>holon.jsonld</code> here, or choose a file.
+          Everything runs in your browser.
         </p>
         <div
           style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
@@ -108,7 +104,7 @@ export function FileMode() {
             Choose file
             <input
               type="file"
-              accept=".trig,.ttl,text/turtle"
+              accept=".jsonld,.json,application/ld+json"
               onChange={(e) => onFiles(e.target.files)}
             />
           </label>
