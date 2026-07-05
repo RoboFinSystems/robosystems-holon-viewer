@@ -2,7 +2,7 @@ import type { NormalizedReport } from '@robosystems/report-components'
 import { ReportView } from '@robosystems/report-components'
 import { parseJsonld } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
 
@@ -23,6 +23,14 @@ interface FileModeProps {
 export function FileMode({ report, onLoaded }: FileModeProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+
+  // Clear any error whenever the loaded report changes — in particular when
+  // "Load another" (App's onReset) sets report back to null — so a stale
+  // message from a superseded/failed load can't surface on the empty dropzone.
+  // A failed load leaves report unchanged (null → null), so its error persists.
+  useEffect(() => {
+    setError(null)
+  }, [report])
 
   const loadText = useCallback(
     async (text: string, name: string) => {
