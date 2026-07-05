@@ -14,10 +14,7 @@
     "types": ["node"],
     "baseUrl": ".",
     "paths": {
-      "@robosystems/report-components": ["../robosystems-report-components/src/index.ts"],
-      "@robosystems/report-components/adapters": [
-        "../robosystems-report-components/src/adapters/index.ts"
-      ]
+      "@robosystems/client/sdk": ["./src/sec/robosystems-client.d.ts"]
     }
   },
   "include": ["src", "test"]
