@@ -247,26 +247,6 @@ body {
   min-width: 0;
 }
 
-.header-loaded {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  min-width: 0;
-  padding: 0.35rem 0.35rem 0.35rem 0.85rem;
-  background: var(--rs-gray-50);
-  border: 1px solid var(--rs-border);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  color: var(--rs-gray-700);
-}
-
-.header-loaded-text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 46ch;
-}
-
 .btn-sm {
   padding: 0.35rem 0.85rem;
   font-size: 0.8rem;
@@ -338,4 +318,299 @@ body {
 .field input:disabled {
   background: var(--rs-gray-50);
   color: var(--rs-muted);
+}
+
+.field > span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--rs-gray-700);
+  margin-bottom: 0.35rem;
+}
+
+/* ── SEC mode: browse ── */
+.sec-browse {
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.sec-browse-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.sec-browse-head h2 {
+  font-family: var(--rs-font-heading);
+  margin: 0 0 0.25rem;
+  font-size: 1.2rem;
+}
+
+.sec-browse-head p {
+  margin: 0;
+}
+
+.sec-empty {
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+/* ── SEC mode: company search ── */
+.sec-search {
+  position: relative;
+}
+
+.sec-search-input {
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--rs-border-strong);
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.95rem;
+}
+
+.sec-search-input:focus {
+  outline: none;
+  border-color: var(--rs-primary-500);
+  box-shadow: 0 0 0 3px var(--rs-primary-100);
+}
+
+.sec-suggest {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0.35rem;
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 1px solid var(--rs-border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.sec-suggest-empty {
+  padding: 0.6rem 0.75rem;
+  color: var(--rs-muted);
+  font-size: 0.85rem;
+}
+
+.sec-suggest-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sec-suggest-item.active {
+  background: var(--rs-primary-50);
+}
+
+.sec-suggest-ticker {
+  font-family: var(--rs-font-mono);
+  font-weight: 600;
+  color: var(--rs-primary-700);
+  min-width: 4.5ch;
+}
+
+.sec-suggest-name {
+  color: var(--rs-gray-700);
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── SEC mode: filing list ── */
+.sec-filings {
+  margin-top: 1.75rem;
+}
+
+.sec-filings-head {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+}
+
+.filing-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filing-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--rs-border);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color 0.12s ease,
+    background 0.12s ease;
+}
+
+.filing-item:hover {
+  border-color: var(--rs-primary-300);
+  background: var(--rs-primary-50);
+}
+
+.filing-form {
+  font-family: var(--rs-font-mono);
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: #ffffff;
+  background: var(--rs-primary-700);
+  padding: 0.2rem 0.55rem;
+  border-radius: 6px;
+  min-width: 4rem;
+  text-align: center;
+}
+
+.filing-meta {
+  display: flex;
+  gap: 1rem;
+  align-items: baseline;
+  color: var(--rs-gray-700);
+  font-size: 0.85rem;
+}
+
+.filing-fy {
+  color: var(--rs-muted);
+}
+
+/* ── Report screen (shared by File + SEC modes) ── */
+.report-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.report-breadcrumb-title {
+  font-size: 0.95rem;
+}
+
+.report-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.report-toc {
+  position: sticky;
+  top: 5rem;
+  max-height: calc(100vh - 6rem);
+  overflow-y: auto;
+}
+
+.report-main {
+  min-width: 0;
+}
+
+/* ── Table of contents ── */
+.toc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.toc-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--rs-gray-700);
+  text-align: left;
+  cursor: pointer;
+  line-height: 1.3;
+}
+
+.toc-item:hover {
+  background: var(--rs-gray-100);
+}
+
+.toc-item.active {
+  background: var(--rs-primary-50);
+  color: var(--rs-primary-700);
+  font-weight: 600;
+}
+
+.toc-item-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.toc-dot {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rs-secondary-500);
+}
+
+/* ── Loading ── */
+.sec-loading {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--rs-muted);
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+
+.spinner {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--rs-gray-200);
+  border-top-color: var(--rs-primary-500);
+  border-radius: 50%;
+  animation: rs-spin 0.7s linear infinite;
+}
+
+.spinner-sm {
+  width: 12px;
+  height: 12px;
+  border-width: 2px;
+}
+
+@keyframes rs-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Give the report screen more room than the default centered column. */
+.app-main:has(.sectioned-report) {
+  max-width: 1320px;
 }

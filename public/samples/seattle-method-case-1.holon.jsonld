@@ -2158,8 +2158,8 @@
           "@type": "rs:Entity",
           "country": "US",
           "internalId": "entity_kg19f310982ab9e45ea66e",
-          "legalName": "Lemonade Stand (Charlie Hoffman Test Case 1)",
-          "prefLabel": "Lemonade Stand (Charlie Hoffman Test Case 1)"
+          "legalName": "Lemonade Stand",
+          "prefLabel": "Lemonade Stand"
         },
         {
           "@id": "https://robosystems.ai/report/rpt_01KWRGK66V55V8NY74RJVF8WPT/fact/fact_01KWRGK67T049W69G5AGEN3NGJ",

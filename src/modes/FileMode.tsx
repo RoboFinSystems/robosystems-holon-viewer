@@ -1,16 +1,21 @@
 import type { NormalizedReport } from '@robosystems/report-components'
-import { ReportView } from '@robosystems/report-components'
+import { reportSections, sliceReportSection } from '@robosystems/report-components'
 import { parseJsonld } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { SectionedReport } from '../report/SectionedReport'
 
 const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
 
 interface FileModeProps {
   /** The loaded report, owned by `App` (so the header can show it). */
   report: NormalizedReport | null
+  /** File name of the loaded report — keys the section view so it resets per file. */
+  fileName: string | null
   /** Called when a holon parses successfully. */
   onLoaded: (report: NormalizedReport, fileName: string) => void
+  /** Clear the loaded report and return to the dropzone. */
+  onReset: () => void
 }
 
 /**
@@ -20,9 +25,20 @@ interface FileModeProps {
  * the app header (`App` owns that state); this renders the dropzone, then the
  * report once one is loaded.
  */
-export function FileMode({ report, onLoaded }: FileModeProps) {
+export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+
+  // A holon is fully in memory, so a section loads instantly — slice it out of
+  // the parsed report. Same shared surface the SEC mode uses.
+  const sections = useMemo(() => (report ? reportSections(report) : []), [report])
+  const loadSection = useCallback(
+    (id: string): Promise<NormalizedReport> =>
+      report
+        ? Promise.resolve(sliceReportSection(report, id))
+        : Promise.reject(new Error('No report loaded')),
+    [report]
+  )
 
   // Clear any error whenever the loaded report changes — in particular when
   // "Load another" (App's onReset) sets report back to null — so a stale
@@ -78,7 +94,25 @@ export function FileMode({ report, onLoaded }: FileModeProps) {
   }, [loadText])
 
   if (report) {
-    return <ReportView report={report} />
+    const header = (
+      <div className="report-breadcrumb">
+        <button type="button" className="btn btn-secondary btn-sm" onClick={onReset}>
+          ← Load another
+        </button>
+        <span className="report-breadcrumb-title">
+          <strong>{report.entity?.name ?? fileName ?? 'Report'}</strong>
+          {fileName ? <span className="hint"> · {fileName}</span> : null}
+        </span>
+      </div>
+    )
+    return (
+      <SectionedReport
+        key={fileName ?? 'file'}
+        sections={sections}
+        loadSection={loadSection}
+        header={header}
+      />
+    )
   }
 
   return (

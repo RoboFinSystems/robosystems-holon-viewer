@@ -28,18 +28,6 @@ export function App() {
         </div>
 
         <div className="header-right">
-          {mode === 'file' && report ? (
-            <div className="header-loaded">
-              <span className="header-loaded-text">
-                Loaded <strong>{fileName}</strong>
-                {report.reportId ? <span className="hint"> · {report.reportId}</span> : null}
-              </span>
-              <button type="button" className="btn btn-secondary btn-sm" onClick={onReset}>
-                Load another
-              </button>
-            </div>
-          ) : null}
-
           <nav className="mode-switch" role="tablist" aria-label="Source mode">
             <button
               type="button"
@@ -62,13 +50,14 @@ export function App() {
       </header>
 
       <main className="app-main">
-        {mode === 'file' ? <FileMode report={report} onLoaded={onLoaded} /> : <SecMode />}
+        {mode === 'file' ? (
+          <FileMode report={report} fileName={fileName} onLoaded={onLoaded} onReset={onReset} />
+        ) : (
+          <SecMode />
+        )}
       </main>
 
-      <footer className="app-footer">
-        Static, client-side. A holon report renders only its scene · boundary · projection — never
-        the underlying ledger.
-      </footer>
+      <footer className="app-footer">© 2026 RFS LLC. All rights reserved.</footer>
     </div>
   )
 }
