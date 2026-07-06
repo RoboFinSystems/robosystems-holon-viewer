@@ -101,9 +101,25 @@ body {
 
 /* ── App shell ── */
 .app {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
+}
+
+/* Body row: scrollable content + the (pushing) chat drawer. */
+.app-body {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.app-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
 .app-header {
@@ -176,6 +192,233 @@ body {
   color: var(--rs-muted);
   text-align: center;
   background: #ffffff;
+}
+
+/* ── Chat drawer (right-side, pushes the content) ── */
+.chat-drawer {
+  width: 0;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: #ffffff;
+  border-left: 1px solid var(--rs-border);
+  transition: width 0.2s ease;
+}
+
+.chat-drawer.open {
+  width: min(420px, 90vw);
+}
+
+/* Fixed inner width so content doesn't reflow during the width transition. */
+.chat-inner {
+  width: min(420px, 90vw);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--rs-border);
+}
+
+.chat-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-close {
+  border: none;
+  background: none;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0 0.25rem;
+  cursor: pointer;
+  color: var(--rs-muted);
+}
+
+.chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.chat-empty {
+  margin: 0;
+}
+
+.chat-msg {
+  max-width: 90%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.chat-msg-user {
+  align-self: flex-end;
+  background: var(--rs-primary-100);
+  color: var(--rs-gray-900);
+}
+
+.chat-msg-assistant {
+  align-self: flex-start;
+  background: var(--rs-gray-100);
+  color: var(--rs-gray-900);
+}
+
+.chat-thinking {
+  color: var(--rs-muted);
+}
+
+.chat-msg-error {
+  background: #fef2f2;
+  color: var(--rs-error);
+}
+
+/* Rendered Markdown inside an assistant bubble — tight spacing, no pre-wrap. */
+.chat-md {
+  white-space: normal;
+}
+
+.chat-md > :first-child {
+  margin-top: 0;
+}
+
+.chat-md > :last-child {
+  margin-bottom: 0;
+}
+
+.chat-md p {
+  margin: 0 0 0.5rem;
+}
+
+.chat-md ul,
+.chat-md ol {
+  margin: 0.25rem 0;
+  padding-left: 1.25rem;
+}
+
+.chat-md li {
+  margin: 0.15rem 0;
+}
+
+.chat-md h1,
+.chat-md h2,
+.chat-md h3,
+.chat-md h4 {
+  margin: 0.4rem 0 0.2rem;
+  font-size: 0.95rem;
+}
+
+.chat-md a {
+  color: var(--rs-primary-700);
+}
+
+.chat-md code {
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: var(--rs-gray-200);
+  font-family: var(--rs-font-mono);
+  font-size: 0.85em;
+}
+
+.chat-md pre {
+  overflow-x: auto;
+  margin: 0.4rem 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rs-border);
+  border-radius: 8px;
+  background: var(--rs-gray-50);
+}
+
+.chat-md pre code {
+  padding: 0;
+  background: none;
+}
+
+.chat-md table {
+  display: block;
+  overflow-x: auto;
+  margin: 0.4rem 0;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.chat-md th,
+.chat-md td {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--rs-border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* The generated-SPARQL reveal under an answer. */
+.chat-sparql {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+}
+
+.chat-sparql summary {
+  cursor: pointer;
+  color: var(--rs-muted);
+}
+
+.chat-sparql pre {
+  overflow-x: auto;
+  margin: 0.3rem 0 0;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--rs-border);
+  border-radius: 8px;
+  background: var(--rs-gray-50);
+  font-family: var(--rs-font-mono);
+  font-size: 0.75rem;
+  white-space: pre;
+}
+
+.chat-input {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--rs-border);
+}
+
+.chat-input input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--rs-border-strong);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.chat-connect {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--rs-border);
+}
+
+.chat-footnote {
+  padding: 0 1rem 0.75rem;
+  margin: 0;
+}
+
+.chat-link {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--rs-primary-700);
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 /* ── File mode ── */
@@ -261,6 +504,49 @@ body {
   border: 1px solid #fecaca;
   color: var(--rs-error);
   font-size: 0.85rem;
+}
+
+/* ── Spinner ── */
+.spinner {
+  display: inline-block;
+  width: 1.1em;
+  height: 1.1em;
+  border: 2px solid var(--rs-border-strong);
+  border-top-color: var(--rs-primary-500);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+.spinner-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--rs-muted);
+  font-size: 0.85rem;
+}
+
+.loading-center {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+/* On a gradient button the spinner should read white, not muted-gray. */
+.btn .spinner-wrap {
+  color: inherit;
+}
+
+.btn .spinner {
+  border-color: rgba(255, 255, 255, 0.5);
+  border-top-color: #ffffff;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .hint {
