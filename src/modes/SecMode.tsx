@@ -8,6 +8,7 @@
  * chat-provider key as a fast-follow (a different `slot`).
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Spinner } from '../components/Spinner'
 import { usePersistentApiKey } from '../hooks/usePersistentApiKey'
 import { configureSec, findSecRepository, type SecEntity, type SecFiling } from '../sec/client'
 import { ConnectPanel } from './sec/ConnectPanel'
@@ -26,6 +27,9 @@ export function SecMode() {
   const [repoName, setRepoName] = useState<string | null>(null)
   const [entity, setEntity] = useState<SecEntity | null>(null)
   const [filing, setFiling] = useState<SecFiling | null>(null)
+  // True while a stored key is auto-validated on mount — show a spinner instead
+  // of flashing the full connect form.
+  const [autoValidating, setAutoValidating] = useState(() => Boolean(key))
 
   const connect = useCallback(
     async (apiKey: string) => {
@@ -55,7 +59,8 @@ export function SecMode() {
   useEffect(() => {
     if (autoTried.current) return
     autoTried.current = true
-    if (key) void connect(key)
+    if (key) connect(key).finally(() => setAutoValidating(false))
+    else setAutoValidating(false)
   }, [key, connect])
 
   const disconnect = useCallback(() => {
@@ -68,6 +73,15 @@ export function SecMode() {
   }, [clear])
 
   if (phase === 'connect') {
+    if (autoValidating) {
+      return (
+        <div className="panel-card">
+          <div className="loading-center">
+            <Spinner label="Checking your saved API key…" />
+          </div>
+        </div>
+      )
+    }
     return (
       <ConnectPanel
         initialKey={key}

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Spinner } from '../../components/Spinner'
 
 interface ConnectPanelProps {
   /** Seed the input from the persisted key (so a stored key is pre-filled). */
@@ -43,7 +44,7 @@ export function ConnectPanel({ initialKey, connecting, error, onConnect }: Conne
           />
         </label>
         <button type="submit" className="btn" disabled={connecting || !trimmed}>
-          {connecting ? 'Connecting…' : 'Connect'}
+          {connecting ? <Spinner label="Connecting…" /> : 'Connect'}
         </button>
       </form>
 

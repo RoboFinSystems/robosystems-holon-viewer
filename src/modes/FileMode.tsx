@@ -1,8 +1,10 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { reportSections, sliceReportSection } from '@robosystems/report-components'
 import { parseJsonld } from '@robosystems/report-components/adapters'
+import type { Store } from 'n3'
 import type { DragEvent } from 'react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { buildStore } from '../ai/rdf'
 import { SectionedReport } from '../report/SectionedReport'
 
 const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
@@ -12,8 +14,8 @@ interface FileModeProps {
   report: NormalizedReport | null
   /** File name of the loaded report — keys the section view so it resets per file. */
   fileName: string | null
-  /** Called when a holon parses successfully. */
-  onLoaded: (report: NormalizedReport, fileName: string) => void
+  /** Called when a holon parses successfully — with the queryable RDF store. */
+  onLoaded: (report: NormalizedReport, store: Store, fileName: string) => void
   /** Clear the loaded report and return to the dropzone. */
   onReset: () => void
 }
@@ -56,7 +58,10 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
           setError('No Information Blocks found — is this a holon report?')
           return
         }
-        onLoaded(parsed, name)
+        // Build the queryable RDF store from the same document so the chat can
+        // run SPARQL over it (report-components discards its internal store).
+        const store = await buildStore(text)
+        onLoaded(parsed, store, name)
         setError(null)
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))

@@ -17,6 +17,10 @@
 import { useCallback, useEffect, useState } from 'react'
 
 const STORAGE_PREFIX = 'holon-viewer:apikey:'
+// Same-tab change signal — the `storage` event only fires in OTHER tabs, so this
+// keeps two instances of the same slot in one tab in sync (e.g. the chat
+// drawer's 'sec' instance tracking the SEC connect form's).
+const CHANGE_EVENT = 'holon-viewer:apikey-change'
 
 function read(storageKey: string): string {
   if (typeof window === 'undefined') return ''
@@ -54,6 +58,7 @@ export function usePersistentApiKey(slot: string): PersistentApiKey {
       try {
         if (value) window.localStorage.setItem(storageKey, value)
         else window.localStorage.removeItem(storageKey)
+        window.dispatchEvent(new CustomEvent(CHANGE_EVENT, { detail: storageKey }))
       } catch {
         // Ignore write failures (private mode); the key still works this session.
       }
@@ -63,13 +68,22 @@ export function usePersistentApiKey(slot: string): PersistentApiKey {
 
   const clear = useCallback(() => setKey(''), [setKey])
 
-  // Reflect changes made in another tab (set or cleared elsewhere).
+  // Reflect changes made in another tab (`storage`) or another instance in this
+  // tab (`CHANGE_EVENT`).
   useEffect(() => {
+    const reread = () => setKeyState(read(storageKey))
     const onStorage = (e: StorageEvent) => {
-      if (e.key === storageKey) setKeyState(e.newValue ?? '')
+      if (e.key === storageKey) reread()
+    }
+    const onLocal = (e: Event) => {
+      if ((e as CustomEvent<string>).detail === storageKey) reread()
     }
     window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    window.addEventListener(CHANGE_EVENT, onLocal)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener(CHANGE_EVENT, onLocal)
+    }
   }, [storageKey])
 
   return { key, setKey, clear, isStored: key.length > 0 }
