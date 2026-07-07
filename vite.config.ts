@@ -1,6 +1,6 @@
 /// <reference types="vitest/config" />
-import { fileURLToPath } from 'node:url'
 import react from '@vitejs/plugin-react'
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 
 // The RoboSystems API's CORS allowlist doesn't include localhost, so in dev the
