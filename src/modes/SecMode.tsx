@@ -77,7 +77,7 @@ export function SecMode() {
       return (
         <div className="panel-card">
           <div className="loading-center">
-            <Spinner label="Checking your saved API key…" />
+            <Spinner label="Loading…" />
           </div>
         </div>
       )

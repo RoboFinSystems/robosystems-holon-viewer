@@ -1,13 +1,12 @@
-import { buildStatements } from '@robosystems/report-components'
+import { buildPivots } from '@robosystems/report-components'
 import { parseJsonld } from '@robosystems/report-components/adapters'
 import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
-// Exercises the cross-repo wiring: the alias to ../robosystems-report-components/src
-// must resolve, and the canonical .holon.jsonld sample must reconstruct into the
-// four statements.
+// Exercises the cross-repo wiring: the report-components package must resolve, and
+// the canonical .holon.jsonld sample must reconstruct into the four statements.
 const here = dirname(fileURLToPath(import.meta.url))
 const samples = join(here, '..', 'public', 'samples')
 const FOUR_STATEMENTS = [
@@ -23,7 +22,7 @@ describe('viewer ↔ library wiring (Mode A)', () => {
     const report = await parseJsonld(doc)
     expect(report.entity?.name).toContain('Lemonade Stand')
 
-    const statements = buildStatements(report)
+    const statements = buildPivots(report)
     expect(statements.map((s) => s.blockType)).toEqual(FOUR_STATEMENTS)
   })
 })
