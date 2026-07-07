@@ -1,6 +1,9 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import type { Store } from 'n3'
 import { lazy, Suspense, useCallback, useState } from 'react'
+import type { SecReportContext } from './ai/reportContext'
+import { KeysDrawer } from './chat/KeysDrawer'
+import { BotIcon, GearIcon, GitHubIcon } from './components/icons'
 import { Spinner } from './components/Spinner'
 import { FileMode } from './modes/FileMode'
 import { SecMode } from './modes/SecMode'
@@ -20,6 +23,10 @@ export function App() {
   const [chatOpen, setChatOpen] = useState(false)
   // Mounts the lazy drawer on first open, then keeps it mounted (state + layout).
   const [chatMounted, setChatMounted] = useState(false)
+  const [keysOpen, setKeysOpen] = useState(false)
+  // The SEC filing currently on screen (published by SecMode), so the chat can
+  // key its summary/pin on it. Null in file mode and when browsing.
+  const [secContext, setSecContext] = useState<SecReportContext | null>(null)
 
   const onLoaded = useCallback((r: NormalizedReport, s: Store, name: string) => {
     setReport(r)
@@ -30,6 +37,21 @@ export function App() {
     setReport(null)
     setStore(null)
     setFileName(null)
+  }, [])
+
+  // The two right-side drawers share one slot, so opening one closes the other.
+  const toggleChat = useCallback(() => {
+    setChatMounted(true)
+    setChatOpen((o) => !o)
+    setKeysOpen(false)
+  }, [])
+  const toggleKeys = useCallback(() => {
+    setKeysOpen((o) => !o)
+    setChatOpen(false)
+  }, [])
+  const openSettings = useCallback(() => {
+    setKeysOpen(true)
+    setChatOpen(false)
   }, [])
 
   return (
@@ -43,14 +65,23 @@ export function App() {
         <div className="header-right">
           <button
             type="button"
-            className="btn btn-secondary btn-sm"
+            className="btn btn-secondary icon-btn"
             aria-pressed={chatOpen}
-            onClick={() => {
-              setChatMounted(true)
-              setChatOpen((o) => !o)
-            }}
+            aria-label="Ask"
+            title="Ask"
+            onClick={toggleChat}
           >
-            Ask
+            <BotIcon />
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary icon-btn"
+            aria-pressed={keysOpen}
+            aria-label="Settings"
+            title="Settings"
+            onClick={toggleKeys}
+          >
+            <GearIcon />
           </button>
           <nav className="mode-switch" role="tablist" aria-label="Source mode">
             <button
@@ -67,7 +98,7 @@ export function App() {
               aria-selected={mode === 'sec'}
               onClick={() => setMode('sec')}
             >
-              SEC
+              Graph
             </button>
           </nav>
         </div>
@@ -79,10 +110,21 @@ export function App() {
             {mode === 'file' ? (
               <FileMode report={report} fileName={fileName} onLoaded={onLoaded} onReset={onReset} />
             ) : (
-              <SecMode />
+              <SecMode onOpenSettings={openSettings} onReportContext={setSecContext} />
             )}
           </main>
-          <footer className="app-footer">© 2026 RFS LLC. All rights reserved.</footer>
+          <footer className="app-footer">
+            <span>© 2026 RFS LLC. All rights reserved.</span>
+            <a
+              className="app-footer-link"
+              href="https://github.com/RoboFinSystems/robosystems-holon-viewer"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <GitHubIcon />
+              GitHub
+            </a>
+          </footer>
         </div>
         {chatMounted ? (
           <Suspense
@@ -102,9 +144,12 @@ export function App() {
               mode={mode}
               report={report}
               store={store}
+              secContext={mode === 'sec' ? secContext : null}
+              onOpenSettings={openSettings}
             />
           </Suspense>
         ) : null}
+        <KeysDrawer open={keysOpen} onClose={() => setKeysOpen(false)} />
       </div>
     </div>
   )

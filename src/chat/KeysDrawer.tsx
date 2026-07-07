@@ -1,0 +1,236 @@
+/**
+ * The Keys & settings drawer — one place to enter, check, and clear every BYO
+ * key the app uses: RoboSystems (SEC graph), Anthropic (chat), and ElevenLabs
+ * (voice). Same right-side shell as the chat "Ask" drawer. Keys persist via
+ * `usePersistentApiKey`; nothing is sent to this app's origin.
+ *
+ * The RoboSystems key is validated live (lists graphs, confirms SEC access) so
+ * the user gets a real "Connected" signal here instead of finding out on the SEC
+ * tab. Anthropic has no free validation endpoint, so it just reports "Saved".
+ */
+import { type ReactNode, useEffect, useState } from 'react'
+import { DEFAULT_VOICE_ID } from '../ai/tts'
+import { Spinner } from '../components/Spinner'
+import { type PersistentApiKey, usePersistentApiKey } from '../hooks/usePersistentApiKey'
+import { validateSecKey } from '../sec/client'
+
+interface KeysDrawerProps {
+  open: boolean
+  onClose: () => void
+}
+
+type SaveResult = { ok: boolean; message: string }
+
+interface KeyRowProps {
+  title: string
+  blurb: string
+  apiKey: PersistentApiKey
+  placeholder: string
+  /** Optional live check on Save; when omitted the key is just stored. */
+  validate?: (value: string) => Promise<SaveResult>
+  /** Status shown once a key is stored (idle), e.g. "Saved". */
+  savedLabel: string
+  /** An extra section rendered inside the same card, below a divider. */
+  extra?: ReactNode
+}
+
+function KeyRow({ title, blurb, apiKey, placeholder, validate, savedLabel, extra }: KeyRowProps) {
+  const [draft, setDraft] = useState(apiKey.key)
+  const [status, setStatus] = useState<'idle' | 'saving' | 'ok' | 'error'>('idle')
+  const [message, setMessage] = useState('')
+
+  // Reflect external changes (Disconnect here, or another tab) into the field.
+  useEffect(() => {
+    setDraft(apiKey.key)
+    setStatus('idle')
+    setMessage('')
+  }, [apiKey.key])
+
+  const save = async () => {
+    const value = draft.trim()
+    if (!value) return
+    if (!validate) {
+      apiKey.setKey(value)
+      return
+    }
+    setStatus('saving')
+    setMessage('')
+    try {
+      const res = await validate(value)
+      if (res.ok) {
+        apiKey.setKey(value)
+        setStatus('ok')
+      } else {
+        setStatus('error')
+      }
+      setMessage(res.message)
+    } catch (e) {
+      setStatus('error')
+      setMessage(e instanceof Error ? e.message : String(e))
+    }
+  }
+
+  const disconnect = () => {
+    apiKey.clear()
+    setDraft('')
+    setStatus('idle')
+    setMessage('')
+  }
+
+  return (
+    <div className="keys-row">
+      <form
+        className="keys-form"
+        onSubmit={(e) => {
+          e.preventDefault()
+          void save()
+        }}
+      >
+        <div className="keys-row-head">
+          <strong>{title}</strong>
+          {status === 'idle' && apiKey.isStored ? (
+            <span className="keys-status keys-status-ok">✓ {savedLabel}</span>
+          ) : null}
+          {status === 'ok' ? <span className="keys-status keys-status-ok">✓ {message}</span> : null}
+        </div>
+        <p className="hint keys-blurb">{blurb}</p>
+        <div className="keys-actions">
+          <input
+            type="password"
+            className="keys-input"
+            value={draft}
+            onChange={(e) => setDraft(e.target.value)}
+            placeholder={placeholder}
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <button
+            type="submit"
+            className="btn btn-sm"
+            disabled={status === 'saving' || !draft.trim() || draft.trim() === apiKey.key}
+          >
+            {status === 'saving' ? <Spinner label="Checking…" /> : 'Save'}
+          </button>
+          {apiKey.isStored ? (
+            <button type="button" className="btn btn-secondary btn-sm" onClick={disconnect}>
+              Disconnect
+            </button>
+          ) : null}
+        </div>
+        {status === 'error' ? <div className="error keys-error">{message}</div> : null}
+      </form>
+      {extra}
+    </div>
+  )
+}
+
+/**
+ * The optional ElevenLabs Voice ID override — its own titled section inside the
+ * ElevenLabs card (blank = the built-in default narrator).
+ */
+function VoiceIdRow({ voice }: { voice: PersistentApiKey }) {
+  const [draft, setDraft] = useState(voice.key)
+  useEffect(() => setDraft(voice.key), [voice.key])
+  const trimmed = draft.trim()
+  const changed = trimmed !== voice.key
+
+  return (
+    <form
+      className="keys-subsection"
+      onSubmit={(e) => {
+        e.preventDefault()
+        voice.setKey(trimmed) // '' removes the override → default voice
+      }}
+    >
+      <div className="keys-row-head">
+        <strong>Voice</strong>
+        {voice.isStored ? <span className="keys-status keys-status-ok">✓ Custom</span> : null}
+      </div>
+      <p className="hint keys-blurb">
+        Which voice to speak with. Leave blank to use the default narrator.
+      </p>
+      <div className="keys-actions">
+        <input
+          type="text"
+          className="keys-input"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={`Voice ID — ${DEFAULT_VOICE_ID}`}
+          autoComplete="off"
+          spellCheck={false}
+        />
+        <button type="submit" className="btn btn-sm" disabled={!changed}>
+          {trimmed ? 'Save' : 'Use default'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+export function KeysDrawer({ open, onClose }: KeysDrawerProps) {
+  const sec = usePersistentApiKey('sec')
+  const llm = usePersistentApiKey('llm')
+  const eleven = usePersistentApiKey('elevenlabs')
+  const voice = usePersistentApiKey('elevenlabs-voice')
+
+  return (
+    <aside
+      className={open ? 'chat-drawer keys-drawer open' : 'chat-drawer keys-drawer'}
+      inert={!open}
+    >
+      <div className="chat-inner">
+        <div className="chat-header">
+          <div className="chat-title">
+            <strong>Settings &amp; keys</strong>
+          </div>
+          <button
+            type="button"
+            className="chat-close"
+            onClick={onClose}
+            aria-label="Close settings"
+          >
+            ×
+          </button>
+        </div>
+
+        <div className="chat-messages keys-body">
+          <p className="hint">
+            Bring your own keys. Each is stored only in this browser and sent directly to its
+            provider when used — never to this app.
+          </p>
+
+          <KeyRow
+            title="RoboSystems"
+            blurb="Unlocks the SEC EDGAR graph (search filings, ask the graph). Validated on save."
+            apiKey={sec}
+            placeholder="rfs…"
+            savedLabel="Saved"
+            validate={async (value) => {
+              const repo = await validateSecKey(value)
+              return repo
+                ? { ok: true, message: `Connected — ${repo.graphName}` }
+                : { ok: false, message: 'Valid key, but it has no access to the SEC repository.' }
+            }}
+          />
+
+          <KeyRow
+            title="Anthropic"
+            blurb="Powers the Ask chat and one-click summaries. Sent directly to Anthropic."
+            apiKey={llm}
+            placeholder="sk-ant-…"
+            savedLabel="Saved"
+          />
+
+          <KeyRow
+            title="ElevenLabs"
+            blurb="Optional — reads answers and summaries aloud. Sent directly to ElevenLabs."
+            apiKey={eleven}
+            placeholder="ElevenLabs API key"
+            savedLabel="Saved"
+            extra={eleven.isStored ? <VoiceIdRow voice={voice} /> : null}
+          />
+        </div>
+      </div>
+    </aside>
+  )
+}

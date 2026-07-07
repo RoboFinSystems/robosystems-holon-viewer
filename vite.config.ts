@@ -40,6 +40,14 @@ export default defineConfig({
   server: {
     proxy: {
       '/v1': { target: apiTarget, changeOrigin: true, secure: true },
+      // ElevenLabs TTS (voice). Distinct prefix from the RoboSystems `/v1`;
+      // strip it so `/eleven/v1/...` reaches `api.elevenlabs.io/v1/...`.
+      '/eleven': {
+        target: 'https://api.elevenlabs.io',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (p) => p.replace(/^\/eleven/, ''),
+      },
     },
   },
   test: {

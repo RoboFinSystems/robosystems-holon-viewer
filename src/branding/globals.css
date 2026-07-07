@@ -186,12 +186,33 @@ body {
 }
 
 .app-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
   padding: 1rem 1.5rem;
   border-top: 1px solid var(--rs-border);
   font-size: 0.75rem;
   color: var(--rs-muted);
-  text-align: center;
   background: #ffffff;
+}
+
+.app-footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  color: var(--rs-muted);
+  text-decoration: none;
+}
+
+.app-footer-link:hover {
+  color: var(--rs-primary-700);
+}
+
+.app-footer-link svg {
+  width: 0.95rem;
+  height: 0.95rem;
 }
 
 /* ── Chat drawer (right-side, pushes the content) ── */
@@ -253,6 +274,98 @@ body {
 
 .chat-empty {
   margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+}
+
+.chat-empty p {
+  margin: 0;
+}
+
+/* Friendly icon badge atop the empty state. */
+.chat-empty-icon {
+  align-self: center;
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  background: var(--rs-primary-50);
+  border: 1px solid var(--rs-primary-100);
+}
+
+.chat-empty-lead {
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--rs-gray-700);
+  padding: 0 0.25rem;
+}
+
+.chat-examples-label {
+  margin-top: 0.35rem;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--rs-muted);
+}
+
+.chat-examples {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Tap-to-run example question. */
+.chat-example {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--rs-border);
+  border-radius: 10px;
+  background: #ffffff;
+  font: inherit;
+  font-size: 0.83rem;
+  color: var(--rs-gray-900);
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.chat-example::after {
+  content: '→';
+  flex-shrink: 0;
+  color: var(--rs-primary-500);
+}
+
+.chat-example:hover:not(:disabled) {
+  border-color: var(--rs-primary-300);
+  background: var(--rs-primary-50);
+  color: var(--rs-primary-700);
+}
+
+.chat-example:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* One-click business summary on the empty state. */
+.chat-summary {
+  align-self: stretch;
+  margin-top: 0.35rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
 }
 
 .chat-msg {
@@ -421,6 +534,116 @@ body {
   cursor: pointer;
 }
 
+/* Read-aloud (ElevenLabs) toggle under an assistant answer. */
+.chat-readaloud {
+  margin-top: 0.4rem;
+  border: 1px solid var(--rs-border);
+  background: #ffffff;
+  border-radius: 999px;
+  padding: 0.15rem 0.6rem;
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--rs-muted);
+  cursor: pointer;
+}
+
+.chat-readaloud:hover {
+  color: var(--rs-primary-700);
+  border-color: var(--rs-primary-300);
+}
+
+/* Pin-report toggle above the SEC chat input. */
+.chat-pin {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 1rem 0;
+  font-size: 0.75rem;
+  color: var(--rs-muted);
+  cursor: pointer;
+}
+
+.chat-pin input {
+  accent-color: var(--rs-primary-500);
+}
+
+.chat-tts-error {
+  padding: 0.4rem 1rem 0;
+  margin: 0;
+  color: var(--rs-error);
+}
+
+/* ── Keys / settings drawer (shares the chat-drawer shell) ── */
+.keys-body {
+  gap: 1rem;
+}
+
+.keys-row {
+  padding: 0.75rem;
+  border: 1px solid var(--rs-border);
+  border-radius: 12px;
+  background: var(--rs-gray-50);
+}
+
+.keys-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* A titled sub-section inside a card (e.g. ElevenLabs → Voice), set off by a
+ * divider so it reads as its own section. */
+.keys-subsection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px dashed var(--rs-border-strong);
+}
+
+.keys-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.keys-blurb {
+  margin: 0;
+}
+
+.keys-status {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.keys-status-ok {
+  color: #047857;
+}
+
+.keys-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.keys-input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--rs-border-strong);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.keys-error {
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+}
+
 /* ── File mode ── */
 .dropzone {
   display: flex;
@@ -470,6 +693,32 @@ body {
   background: #ffffff;
   color: var(--rs-primary-700);
   border: 1px solid var(--rs-border-strong);
+}
+
+/* The active (open) drawer's toggle reads as selected. */
+.btn-secondary[aria-pressed='true'] {
+  background: var(--rs-primary-50);
+  border-color: var(--rs-primary-300);
+}
+
+/* Icon-only header button — a round tappable target. Owns its own sizing
+ * (no `btn-sm`), so nothing overrides the padding and squashes the glyph. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.1rem;
+  height: 2.1rem;
+  padding: 0;
+  line-height: 0;
+  border-radius: 999px;
+}
+
+.icon-btn svg {
+  width: 1.2rem;
+  height: 1.2rem;
+  display: block;
+  flex-shrink: 0;
 }
 
 .file-input-label {
