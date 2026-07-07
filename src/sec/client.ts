@@ -109,6 +109,20 @@ export async function findSecRepository(): Promise<{ graphId: string; graphName:
   return sec ? { graphId: sec.graphId, graphName: sec.graphName } : null
 }
 
+/**
+ * Point the SDK at `apiKey` and confirm it can reach the SEC repository —
+ * `configureSec` + `findSecRepository` in one call, shared by the Keys drawer
+ * (live "Connected" status) and `SecMode` (auto-validate on load). Returns the
+ * graph on success, null when the key is valid but has no SEC access, and throws
+ * on an authentication/transport error.
+ */
+export async function validateSecKey(
+  apiKey: string
+): Promise<{ graphId: string; graphName: string } | null> {
+  configureSec(apiKey)
+  return findSecRepository()
+}
+
 // Ticker prefix (upper-cased) OR company-name substring (lower-cased). Capped
 // and ordered so the dropdown stays small and stable.
 const SEARCH_Q = `

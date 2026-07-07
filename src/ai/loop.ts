@@ -35,18 +35,46 @@ export interface LoopResult {
   query?: string
 }
 
+export interface LoopOptions {
+  /**
+   * Appended to the backend's system prompt for this run — how the report in
+   * context (SEC mode) is injected so the agent anchors on the right filing.
+   */
+  contextNote?: string
+  /**
+   * Called as the loop moves through phases (thinking → running a tool →
+   * interpreting), so the UI can show what the agent is actually doing rather
+   * than a single static label.
+   */
+  onProgress?: (status: string) => void
+}
+
+// Tool name → what to tell the user while it runs. Covers both backends'
+// tools; anything unmapped falls back to a generic "Working".
+const TOOL_STATUS: Record<string, string> = {
+  describe_report: 'Reading the report',
+  'get-graph-schema': 'Reading the graph schema',
+  'get-example-queries': 'Finding query patterns',
+  run_sparql: 'Querying the report',
+  'read-graph-cypher': 'Querying the graph',
+}
+
 export async function runToolLoop(
   provider: AIProvider,
   backend: ChatBackend,
   history: AIMessage[],
-  question: string
+  question: string,
+  opts: LoopOptions = {}
 ): Promise<LoopResult> {
+  const { contextNote, onProgress } = opts
   const messages: AIMessage[] = [...history, { role: 'user', content: question }]
+  const system = contextNote ? `${backend.system}\n\n${contextNote}` : backend.system
   let lastQuery: string | undefined
 
+  onProgress?.('Thinking')
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const res = await provider.createMessage({
-      system: backend.system,
+      system,
       messages,
       tools: backend.tools,
     })
@@ -60,6 +88,7 @@ export async function runToolLoop(
     const results: ContentBlock[] = []
     for (const block of res.blocks) {
       if (block.type !== 'tool_use') continue
+      onProgress?.(TOOL_STATUS[block.name] ?? 'Working')
       let content: string
       let isError = false
       try {
@@ -77,11 +106,12 @@ export async function runToolLoop(
       results.push({ type: 'tool_result', toolUseId: block.id, content, isError })
     }
     messages.push({ role: 'user', content: results })
+    onProgress?.('Interpreting results')
   }
 
   // Step limit hit — one final turn to answer from what was gathered.
   const final = await provider.createMessage({
-    system: backend.system,
+    system,
     messages: [
       ...messages,
       {

@@ -1,59 +1,34 @@
-import { useState } from 'react'
-import { Spinner } from '../../components/Spinner'
-
 interface ConnectPanelProps {
-  /** Seed the input from the persisted key (so a stored key is pre-filled). */
-  initialKey: string
-  connecting: boolean
+  /** Validation error from a stored/failed key (e.g. no SEC access). */
   error: string | null
-  onConnect: (apiKey: string) => void
+  /** Open the Keys drawer, where the RoboSystems key is now entered. */
+  onOpenSettings: () => void
 }
 
 /**
- * Step 1 — bring-your-own API key. The key is validated by listing graphs and
- * confirming SEC access; on success it's persisted (localStorage) by the parent.
+ * Step 1 — bring-your-own API key. Key entry now lives in the Keys drawer
+ * (one place for every key), so this just points there. `SecMode` validates the
+ * stored key on load and drops the user straight into browse when it's good.
  */
-export function ConnectPanel({ initialKey, connecting, error, onConnect }: ConnectPanelProps) {
-  const [value, setValue] = useState(initialKey)
-  const trimmed = value.trim()
-
+export function ConnectPanel({ error, onOpenSettings }: ConnectPanelProps) {
   return (
     <div className="panel-card">
       <h2>Connect to the SEC graph</h2>
       <p>
-        Explore public-company financial filings from the SEC EDGAR knowledge graph. Bring your own
-        RoboSystems API key — the authenticated call is made client-side, straight to the API.
+        Explore public-company financial filings from the SEC EDGAR knowledge graph. Add your
+        RoboSystems API key in <strong>Settings</strong> to connect — the authenticated call is made
+        client-side, straight to the API.
       </p>
 
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          if (trimmed) onConnect(trimmed)
-        }}
-      >
-        <label className="field">
-          <span>API key</span>
-          <input
-            type="password"
-            autoFocus
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            placeholder="rfs…"
-            autoComplete="off"
-            spellCheck={false}
-          />
-        </label>
-        <button type="submit" className="btn" disabled={connecting || !trimmed}>
-          {connecting ? <Spinner label="Connecting…" /> : 'Connect'}
-        </button>
-      </form>
+      <button type="button" className="btn" onClick={onOpenSettings}>
+        Open Settings
+      </button>
 
       {error ? <div className="error">{error}</div> : null}
 
       <p className="hint" style={{ marginTop: '1rem' }}>
         Your key is stored only in this browser and sent directly to the RoboSystems API — never to
-        this app (it&apos;s static-hosted with no backend). Clear it any time with{' '}
-        <strong>Disconnect</strong>.
+        this app (it&apos;s static-hosted with no backend). Manage or clear it any time in Settings.
       </p>
     </div>
   )
