@@ -896,7 +896,10 @@ body {
   }
 }
 
-/* Give the report screen more room than the default centered column. */
+/* The report screen spans the full viewport (wide dimensional tables need it):
+   the centered max-width column is dropped, the ToC stays pinned left, and the
+   report body takes the rest. Other screens (forms, pickers) stay centered. */
 .app-main:has(.sectioned-report) {
-  max-width: 1320px;
+  max-width: none;
+  padding: 1.5rem 1.5rem 4rem;
 }
