@@ -1,6 +1,8 @@
 export interface SectionRef {
   id: string
   title: string
+  /** Full role definition (e.g. "0000001 - Document - Cover"), shown on hover. */
+  definition?: string | null
 }
 
 interface TocSidebarProps {
@@ -34,7 +36,9 @@ export function TocSidebar({
           onClick={() => onSelect(s.id)}
           aria-current={s.id === selectedId}
         >
-          <span className="toc-item-title">{s.title}</span>
+          <span className="toc-item-title" title={s.definition ?? s.title}>
+            {s.title}
+          </span>
           {loadingId === s.id ? (
             <span className="spinner spinner-sm" />
           ) : loadedIds.has(s.id) ? (
