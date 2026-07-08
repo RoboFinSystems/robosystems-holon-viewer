@@ -19,11 +19,11 @@ export default defineConfig(({ mode }) => {
   const apiTarget = env.VITE_ROBOSYSTEMS_API_URL || 'https://api.robosystems.ai'
 
   // Opt-in local link to a sibling checkout of @robosystems/report-components:
-  // `VITE_LOCAL_REPORT_COMPONENTS=1` resolves the package (and its /adapters
+  // `VITE_LOCAL_REPORT_COMPONENTS=true` resolves the package (and its /adapters
   // subpath) to ../robosystems-report-components/dist so unpublished render
   // changes can be exercised against live SEC data. Requires a fresh
   // `npm run build` in that repo. Off by default, so CI/prod builds are unaffected.
-  const useLocalRC = env.VITE_LOCAL_REPORT_COMPONENTS === '1'
+  const useLocalRC = env.VITE_LOCAL_REPORT_COMPONENTS === 'true'
   const rcDist = (p: string): string =>
     fileURLToPath(new URL(`../robosystems-report-components/dist/${p}`, import.meta.url))
 
