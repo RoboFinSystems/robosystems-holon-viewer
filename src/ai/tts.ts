@@ -1,8 +1,8 @@
 /**
  * ElevenLabs text-to-speech, called directly from the browser (BYO key via the
- * `xi-api-key` header) — the same request the content-machine pipeline makes
- * server-side (`tools/generate_voiceover_audio.py`): the `eleven_turbo_v2_5`
- * model and the house voice settings, so spoken answers here match the videos.
+ * `xi-api-key` header) — the same request shape the content-machine pipeline
+ * makes server-side (`tools/generate_voiceover_audio.py`): the
+ * `eleven_turbo_v2_5` model and the house voice settings.
  *
  * Dev uses a relative `/eleven` base so the request rides the Vite proxy (the
  * API's CORS aside); prod calls `api.elevenlabs.io` directly. Mirrors `mcp.ts`.
@@ -12,8 +12,8 @@ const viteEnv = (import.meta as { env?: { DEV?: boolean } }).env
 // Prod: call ElevenLabs directly.
 const BASE = viteEnv?.DEV ? '/eleven' : 'https://api.elevenlabs.io'
 
-/** The content-machine "research narrator" voice — overridable per user. */
-export const DEFAULT_VOICE_ID = '8Ln42OXYupYsag45MAUy'
+/** The default narrator voice — overridable per user via the Keys drawer. */
+export const DEFAULT_VOICE_ID = 'GZ4PpFJV8ikEGUtBrjK7'
 
 const MODEL_ID = 'eleven_turbo_v2_5'
 const VOICE_SETTINGS = {
