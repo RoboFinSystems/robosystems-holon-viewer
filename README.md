@@ -123,6 +123,6 @@ The render logic is not in this app — it lives in `@robosystems/report-compone
 
 ## License
 
-MIT — see [`LICENSE`](./LICENSE).
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 MIT © 2026 RFS LLC
