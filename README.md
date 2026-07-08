@@ -2,8 +2,6 @@
 
 RoboSystems Holon Viewer is a static, client-side renderer for `holon.jsonld` financial reports — the analog of Arelle's `ixbrl-viewer`. A holon is a portable RDF artifact, not self-rendering HTML, so the viewer reconstructs the financial statements from the graph and layers on interactive inspection, in-browser SPARQL, and AI analysis. No sign-up and no backend — open a file and go.
 
-**Live:** [holon.robosystems.ai](https://holon.robosystems.ai) · **Design:** [`SPEC.md`](./SPEC.md)
-
 - **File Mode**: Open a local `holon.jsonld` and render the full report — offline, no API key, no backend, no network call.
 - **SEC Mode**: Search any public company and pull its report from the live SEC knowledge graph with your own RoboSystems API key. Same renderer; the authenticated call is made client-side.
 - **Statement Rendering**: Reconstructs the complete report — balance sheet, income statement, cash flow, equity, and every disclosure section — from the holon's scene / boundary / projection named graphs, with a table-of-contents sidebar for navigation.
