@@ -12,6 +12,7 @@
  * `anthropic-dangerous-direct-browser-access` header the API's CORS allows.
  */
 import Anthropic from '@anthropic-ai/sdk'
+import { DEFAULT_MODEL_ID } from './models'
 import type {
   AIMessage,
   AIProvider,
@@ -21,8 +22,6 @@ import type {
   ToolDef,
 } from './provider'
 
-/** Skill-mandated default; overridable per call via `params.model`. */
-const DEFAULT_MODEL = 'claude-opus-4-8'
 const DEFAULT_MAX_TOKENS = 4096
 
 function toAnthropicContent(
@@ -91,7 +90,7 @@ export class AnthropicProvider implements AIProvider {
 
   async createMessage(params: CreateMessageParams): Promise<AIResponse> {
     const res = await this.client.messages.create({
-      model: params.model ?? DEFAULT_MODEL,
+      model: params.model ?? DEFAULT_MODEL_ID,
       max_tokens: params.maxTokens ?? DEFAULT_MAX_TOKENS,
       system: params.system,
       messages: toAnthropicMessages(params.messages),

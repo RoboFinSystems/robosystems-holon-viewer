@@ -47,6 +47,8 @@ export interface LoopOptions {
    * than a single static label.
    */
   onProgress?: (status: string) => void
+  /** Anthropic model id for this run; the provider defaults when omitted. */
+  model?: string
 }
 
 // Tool name → what to tell the user while it runs. Covers both backends'
@@ -66,7 +68,7 @@ export async function runToolLoop(
   question: string,
   opts: LoopOptions = {}
 ): Promise<LoopResult> {
-  const { contextNote, onProgress } = opts
+  const { contextNote, onProgress, model } = opts
   const messages: AIMessage[] = [...history, { role: 'user', content: question }]
   const system = contextNote ? `${backend.system}\n\n${contextNote}` : backend.system
   let lastQuery: string | undefined
@@ -74,6 +76,7 @@ export async function runToolLoop(
   onProgress?.('Thinking')
   for (let i = 0; i < MAX_ITERATIONS; i++) {
     const res = await provider.createMessage({
+      model,
       system,
       messages,
       tools: backend.tools,
@@ -111,6 +114,7 @@ export async function runToolLoop(
 
   // Step limit hit — one final turn to answer from what was gathered.
   const final = await provider.createMessage({
+    model,
     system,
     messages: [
       ...messages,

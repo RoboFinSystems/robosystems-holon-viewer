@@ -12,6 +12,7 @@ import { type SecReportContext, SUMMARY_PROMPT, secContextNote } from '../ai/rep
 import { stripMarkdown } from '../ai/tts'
 import { Spinner } from '../components/Spinner'
 import { usePersistentApiKey } from '../hooks/usePersistentApiKey'
+import { usePersistentModel } from '../hooks/usePersistentModel'
 import { useTts } from '../hooks/useTts'
 
 interface ChatTurn {
@@ -62,6 +63,7 @@ export function ChatDrawer({
 }: ChatDrawerProps) {
   const llm = usePersistentApiKey('llm')
   const sec = usePersistentApiKey('sec')
+  const { model } = usePersistentModel()
   const tts = useTts()
   const [turns, setTurns] = useState<ChatTurn[]>([])
   const [draft, setDraft] = useState('')
@@ -106,6 +108,7 @@ export function ChatDrawer({
         const res = await runToolLoop(provider, backend, history, question, {
           contextNote,
           onProgress: setStatus,
+          model,
         })
         const text = res.text || '(no answer returned)'
         setTurns((prev) => [
@@ -127,7 +130,7 @@ export function ChatDrawer({
         })
       }
     },
-    [busy, provider, backend, turns, mode, secContext, pinned, tts]
+    [busy, provider, backend, turns, mode, secContext, pinned, tts, model]
   )
 
   const send = useCallback(() => {

@@ -9,9 +9,11 @@
  * tab. Anthropic has no free validation endpoint, so it just reports "Saved".
  */
 import { type ReactNode, useEffect, useState } from 'react'
+import { MODELS } from '../ai/models'
 import { DEFAULT_VOICE_ID } from '../ai/tts'
 import { Spinner } from '../components/Spinner'
 import { type PersistentApiKey, usePersistentApiKey } from '../hooks/usePersistentApiKey'
+import { usePersistentModel } from '../hooks/usePersistentModel'
 import { validateSecKey } from '../sec/client'
 
 interface KeysDrawerProps {
@@ -125,6 +127,41 @@ function KeyRow({ title, blurb, apiKey, placeholder, validate, savedLabel, extra
 }
 
 /**
+ * The Claude model selector — its own titled section inside the Anthropic card.
+ * Model choice is a cost lever (Opus is far pricier than Sonnet), so it sits
+ * right under the key that pays for it. Persisted via `usePersistentModel`.
+ */
+function ModelRow() {
+  const { model, setModel } = usePersistentModel()
+  const current = MODELS.find((m) => m.id === model)
+
+  return (
+    <div className="keys-subsection">
+      <div className="keys-row-head">
+        <strong>Model</strong>
+      </div>
+      <p className="hint keys-blurb">
+        Which Claude model answers. Opus is the most capable and most expensive; Sonnet costs far
+        less — pick to control your spend.
+      </p>
+      <select
+        className="keys-input"
+        value={model}
+        onChange={(e) => setModel(e.target.value)}
+        aria-label="Claude model"
+      >
+        {MODELS.map((m) => (
+          <option key={m.id} value={m.id}>
+            {m.label}
+          </option>
+        ))}
+      </select>
+      {current ? <p className="hint keys-blurb">{current.blurb}</p> : null}
+    </div>
+  )
+}
+
+/**
  * The optional ElevenLabs Voice ID override — its own titled section inside the
  * ElevenLabs card (blank = the built-in default narrator).
  */
@@ -219,6 +256,7 @@ export function KeysDrawer({ open, onClose }: KeysDrawerProps) {
             apiKey={llm}
             placeholder="sk-ant-…"
             savedLabel="Saved"
+            extra={llm.isStored ? <ModelRow /> : null}
           />
 
           <KeyRow
