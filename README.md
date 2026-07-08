@@ -24,6 +24,17 @@ npm run dev      # Start the dev server (Vite, default http://localhost:5173)
 
 Open the bundled sample report, or drag in your own `holon.jsonld`. Build a holon from any SEC filing with [`robosystems-xbrl-holon`](https://github.com/RoboFinSystems/robosystems-xbrl-holon).
 
+### Configuration
+
+File Mode needs no configuration. For **SEC Mode**, the viewer talks to the RoboSystems API — production (`https://api.robosystems.ai`) by default. To point it at a local backend, copy the env template and set the URL:
+
+```bash
+cp .env.example .env
+# VITE_ROBOSYSTEMS_API_URL=http://localhost:8000
+```
+
+In `npm run dev` the dev server proxies `/v1/*` to that target server-side, so a local backend works without a CORS allowlist entry. (Inline still works too: `VITE_ROBOSYSTEMS_API_URL=http://localhost:8000 npm run dev`.)
+
 ## Development Commands
 
 ### Core Development
