@@ -26,7 +26,7 @@ export interface CypherQueryBody {
   error?: string | null
 }
 
-export function executeCypherQuery(options: {
+export function executeCypher(options: {
   baseUrl?: string
   headers?: Record<string, string>
   path: { graph_id: string }
