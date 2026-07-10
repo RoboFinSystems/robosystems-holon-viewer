@@ -10,7 +10,7 @@
  * We import the SDK functions from the `/sdk` subpath rather than the package
  * root. The root `index.js` is ESM that re-exports the generated CommonJS SDK via
  * `export * from './sdk.gen.js'`; Vite's dep pre-bundler turns that into a dynamic
- * re-export and drops the static named exports, so `executeCypherQuery` is missing
+ * re-export and drops the static named exports, so `executeCypher` is missing
  * at runtime. Importing the CJS module directly (`/sdk`) makes esbuild emit static
  * named exports, which Vite resolves correctly.
  *
@@ -18,7 +18,7 @@
  * the SEC graph knowledge (which is navigation, not rendering) stays out of the
  * rendering library.
  */
-import { executeCypherQuery, getGraphs } from '@robosystems/client/sdk'
+import { executeCypher, getGraphs } from '@robosystems/client/sdk'
 import type { SecQuery } from '@robosystems/report-components'
 
 // In dev, use a relative base URL so requests go through the Vite proxy (which
@@ -77,7 +77,7 @@ export function isConfigured(): boolean {
 
 /** The raw SEC Cypher primitive — also the `SecQuery` the adapter runs through. */
 export const secQuery: SecQuery = async (cypher, params) => {
-  const res = await executeCypherQuery({
+  const res = await executeCypher({
     ...opts(),
     path: { graph_id: 'sec' },
     body: { query: cypher, parameters: (params as Record<string, unknown> | undefined) ?? null },
