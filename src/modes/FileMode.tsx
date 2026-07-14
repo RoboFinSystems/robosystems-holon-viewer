@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { buildStore } from '../ai/rdf'
 import { SectionedReport } from '../report/SectionedReport'
 
-const SAMPLE_URL = '/samples/seattle-method-case-1.holon.jsonld'
+const SAMPLE_URL = '/samples/0001045810-26-000021.holon.jsonld'
 
 interface FileModeProps {
   /** The loaded report, owned by `App` (so the header can show it). */
@@ -94,7 +94,7 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
   const loadSample = useCallback(() => {
     fetch(SAMPLE_URL)
       .then((r) => r.text())
-      .then((text) => loadText(text, 'seattle-method-case-1.holon.jsonld'))
+      .then((text) => loadText(text, '0001045810-26-000021.holon.jsonld'))
       .catch((e) => setError(`Could not load sample: ${e}`))
   }, [loadText])
 
@@ -148,12 +148,9 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
             />
           </label>
           <button type="button" className="btn btn-secondary" onClick={loadSample}>
-            Load sample (Lemonade Stand)
+            Load sample (NVIDIA 10-K)
           </button>
         </div>
-        <p className="hint">
-          Reads the report&apos;s scene · boundary · projection graphs — never an underlying ledger.
-        </p>
       </div>
       {error ? <div className="error">{error}</div> : null}
     </div>

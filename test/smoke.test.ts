@@ -6,23 +6,18 @@ import { fileURLToPath } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 // Exercises the cross-repo wiring: the report-components package must resolve, and
-// the canonical .holon.jsonld sample must reconstruct into the four statements.
+// the bundled .holon.jsonld sample (NVIDIA FY2026 10-K) must parse and pivot.
 const here = dirname(fileURLToPath(import.meta.url))
 const samples = join(here, '..', 'public', 'samples')
-const FOUR_STATEMENTS = [
-  'balance_sheet',
-  'income_statement',
-  'cash_flow_statement',
-  'equity_statement',
-]
 
 describe('viewer ↔ library wiring (Mode A)', () => {
-  it('parses the canonical .holon.jsonld sample into the four statements', async () => {
-    const doc = readFileSync(join(samples, 'seattle-method-case-1.holon.jsonld'), 'utf8')
+  it('parses the bundled .holon.jsonld sample into pivotable blocks', async () => {
+    const doc = readFileSync(join(samples, '0001045810-26-000021.holon.jsonld'), 'utf8')
     const report = await parseJsonld(doc)
-    expect(report.entity?.name).toContain('Lemonade Stand')
+    expect(report.entity?.name).toContain('NVIDIA')
+    expect(report.informationBlocks.length).toBeGreaterThan(0)
 
     const statements = buildPivots(report)
-    expect(statements.map((s) => s.blockType)).toEqual(FOUR_STATEMENTS)
+    expect(statements.length).toBe(report.informationBlocks.length)
   })
 })
