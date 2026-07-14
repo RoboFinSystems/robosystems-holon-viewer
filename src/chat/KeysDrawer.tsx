@@ -25,7 +25,7 @@ type SaveResult = { ok: boolean; message: string }
 
 interface KeyRowProps {
   title: string
-  blurb: string
+  blurb: ReactNode
   apiKey: PersistentApiKey
   placeholder: string
   /** Optional live check on Save; when omitted the key is just stored. */
@@ -261,7 +261,18 @@ export function KeysDrawer({ open, onClose }: KeysDrawerProps) {
 
           <KeyRow
             title="ElevenLabs"
-            blurb="Optional — reads answers and summaries aloud. Sent directly to ElevenLabs."
+            blurb={
+              <>
+                Optional — reads answers and summaries aloud. Sent directly to ElevenLabs.{' '}
+                <a
+                  href="https://try.elevenlabs.io/v9z3wzm97gk3"
+                  target="_blank"
+                  rel="sponsored noopener noreferrer"
+                >
+                  Get a key →
+                </a>
+              </>
+            }
             apiKey={eleven}
             placeholder="ElevenLabs API key"
             savedLabel="Saved"

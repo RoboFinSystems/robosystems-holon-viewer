@@ -82,7 +82,7 @@ Keys are entered in the app's keys drawer and stored only in your browser.
 - **File Mode** needs none.
 - **RoboSystems API key** — for SEC Mode (pull live company reports)
 - **Anthropic API key** — for AI analysis and summaries
-- **ElevenLabs API key** — for voice / read-aloud
+- **ElevenLabs API key** ([get one](https://try.elevenlabs.io/v9z3wzm97gk3)) — for voice / read-aloud
 
 #### Deployment Requirements
 
