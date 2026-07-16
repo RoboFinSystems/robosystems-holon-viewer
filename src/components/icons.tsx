@@ -40,6 +40,16 @@ export function GitHubIcon({ className }: IconProps) {
   )
 }
 
+/** Line chart — the equity-research link on a SEC report. */
+export function ResearchIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...BASE}>
+      <path d="M3 3v18h18" />
+      <path d="m19 9-5 5-4-4-3 3" />
+    </svg>
+  )
+}
+
 /** Gear / settings — the Keys drawer. */
 export function GearIcon({ className }: IconProps) {
   return (

@@ -1044,6 +1044,36 @@ body {
   font-size: 0.95rem;
 }
 
+/* Outbound link to the public equity-research portal — shown only when the
+   on-screen ticker has coverage. Pushed to the trailing edge of the row. */
+.research-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-left: auto;
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--rs-secondary-500);
+  border-radius: 999px;
+  color: var(--rs-secondary-500);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.research-link:hover {
+  background: var(--rs-secondary-500);
+  color: #ffffff;
+}
+
+.research-link-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
 .report-layout {
   display: grid;
   grid-template-columns: 240px minmax(0, 1fr);
