@@ -1,8 +1,10 @@
 import type { NormalizedReport, SecReportShell } from '@robosystems/report-components'
 import { fetchSecReportShell, fetchSecSection } from '@robosystems/report-components'
 import { useCallback, useEffect, useState } from 'react'
+import { ResearchIcon } from '../../components/icons'
 import { SectionedReport } from '../../report/SectionedReport'
 import { secQuery, type SecEntity, type SecFiling } from '../../sec/client'
+import { hasResearchCoverage, researchUrl } from '../../sec/research'
 
 interface ReportScreenProps {
   entity: SecEntity
@@ -19,6 +21,9 @@ export function ReportScreen({ entity, filing, onBack }: ReportScreenProps) {
   const [shell, setShell] = useState<SecReportShell | null>(null)
   const [loadingShell, setLoadingShell] = useState(true)
   const [shellError, setShellError] = useState<string | null>(null)
+  // Outbound link to the public research portal, set only when this ticker has
+  // coverage (so we never point at a page that 404s).
+  const [researchLink, setResearchLink] = useState<string | null>(null)
 
   useEffect(() => {
     let cancelled = false
@@ -41,6 +46,21 @@ export function ReportScreen({ entity, filing, onBack }: ReportScreenProps) {
     }
   }, [filing.reportId])
 
+  // Check the public research catalog for this ticker; show the link only when
+  // covered. Failures resolve to "no coverage", so the link just stays hidden.
+  useEffect(() => {
+    let cancelled = false
+    setResearchLink(null)
+    const ticker = entity.ticker
+    if (!ticker) return
+    void hasResearchCoverage(ticker).then((covered) => {
+      if (!cancelled && covered) setResearchLink(researchUrl(ticker))
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [entity.ticker])
+
   const loadSection = useCallback(
     (id: string): Promise<NormalizedReport> => {
       if (!shell) return Promise.reject(new Error('Report not loaded'))
@@ -62,6 +82,19 @@ export function ReportScreen({ entity, filing, onBack }: ReportScreenProps) {
         <span className="hint"> · {filing.form}</span>
         {filing.reportDate ? <span className="hint"> · {filing.reportDate}</span> : null}
       </span>
+      {researchLink ? (
+        <a
+          className="research-link"
+          href={researchLink}
+          target="_blank"
+          rel="noreferrer noopener"
+          title={`View equity research for ${entity.ticker}`}
+        >
+          <ResearchIcon className="research-link-icon" />
+          Research
+          <span aria-hidden="true"> ↗</span>
+        </a>
+      ) : null}
     </div>
   )
 
