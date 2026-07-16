@@ -2,16 +2,49 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/images/logos/robosystems.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="/images/logos/robosystems.png" />
+
+    <title>Holon Viewer — Explore holon.jsonld financial reports · RoboSystems</title>
     <meta
       name="description"
-      content="A standalone, static-hosted renderer for holon.trig financial reports."
+      content="View holon.jsonld financial reports serialized from RoboSystems. Open a report file to explore its financial knowledge graph, or connect API keys to browse SEC filings."
     />
-    <title>RoboSystems Holon Viewer</title>
+    <link rel="canonical" href="https://holon.robosystems.ai/" />
+    <meta name="theme-color" content="#0b0f17" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="RoboSystems" />
+    <meta property="og:title" content="Holon Viewer — Explore holon.jsonld financial reports" />
+    <meta
+      property="og:description"
+      content="View holon.jsonld financial reports serialized from RoboSystems. Open a report file to explore its financial knowledge graph, or connect API keys to browse SEC filings."
+    />
+    <meta property="og:url" content="https://holon.robosystems.ai/" />
+    <meta property="og:image" content="https://holon.robosystems.ai/images/logos/robosystems.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Holon Viewer — Explore holon.jsonld financial reports" />
+    <meta
+      name="twitter:description"
+      content="View holon.jsonld financial reports serialized from RoboSystems. Open a report file to explore its financial knowledge graph, or connect API keys to browse SEC filings."
+    />
+    <meta
+      name="twitter:image"
+      content="https://holon.robosystems.ai/images/logos/robosystems.png"
+    />
   </head>
   <body>
     <div id="root"></div>
+    <noscript>
+      <h1>Holon Viewer</h1>
+      <p>
+        A standalone viewer for holon.jsonld financial reports serialized from RoboSystems. This
+        tool requires JavaScript — enable it to open a report file or connect your API keys.
+      </p>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
