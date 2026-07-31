@@ -71,7 +71,7 @@ npm run feature:create   # Create a feature branch
 
 #### System Requirements
 
-- Node.js 18+
+- Node.js 24+ (LTS)
 - npm
 - Modern browser (Chrome, Firefox, Safari, Edge)
 
