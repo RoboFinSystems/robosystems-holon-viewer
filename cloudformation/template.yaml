@@ -171,6 +171,16 @@ Resources:
             Condition:
               StringEquals:
                 AWS:SourceArn: !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${CloudFrontDistribution}
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Sub ${StaticAssetsBucket.Arn}/*
+              - !GetAtt StaticAssetsBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: 'false'
 
   # ── Route53 alias records for the custom domain (conditional; A + AAAA for IPv6) ──
   SiteDNSRecordA:
