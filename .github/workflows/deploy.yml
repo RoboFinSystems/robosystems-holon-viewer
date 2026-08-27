@@ -92,9 +92,16 @@ jobs:
           # that failed leaves an empty ROLLBACK_COMPLETE stack that cannot be
           # updated; a failed update whose rollback also failed cannot be
           # updated until that rollback is continued.
-          STACK_STATUS=$(aws cloudformation describe-stacks \
+          if ! STACK_STATUS=$(aws cloudformation describe-stacks \
             --stack-name "$STACK_NAME" \
-            --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
+            --query 'Stacks[0].StackStatus' --output text 2>&1); then
+            if echo "$STACK_STATUS" | grep -q "does not exist"; then
+              STACK_STATUS="DOES_NOT_EXIST"
+            else
+              echo "ERROR: could not describe stack $STACK_NAME: $STACK_STATUS"
+              exit 1
+            fi
+          fi
           echo "Stack $STACK_NAME status: $STACK_STATUS"
 
           case "$STACK_STATUS" in
@@ -115,6 +122,14 @@ jobs:
               aws cloudformation wait stack-rollback-complete --stack-name "$STACK_NAME"
               STACK_ACTION="update-stack"
               echo "Updating existing stack $STACK_NAME"
+              ;;
+            DELETE_COMPLETE)
+              STACK_ACTION="create-stack"
+              echo "Creating new stack $STACK_NAME"
+              ;;
+            DELETE_FAILED)
+              echo "ERROR: stack is DELETE_FAILED - resolve the stuck deletion by hand, then rerun"
+              exit 1
               ;;
             *_IN_PROGRESS)
               echo "ERROR: stack is busy ($STACK_STATUS) - wait for the current operation to finish, then rerun"
