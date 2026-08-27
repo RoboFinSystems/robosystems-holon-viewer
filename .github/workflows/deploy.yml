@@ -88,13 +88,43 @@ jobs:
 
       - name: Deploy CloudFormation stack
         run: |
-          if aws cloudformation describe-stacks --stack-name "$STACK_NAME" 2>&1 | grep -q "does not exist"; then
-            STACK_ACTION="create-stack"
-            echo "Creating new stack $STACK_NAME"
-          else
-            STACK_ACTION="update-stack"
-            echo "Updating existing stack $STACK_NAME"
-          fi
+          # Pick the stack action from the stack's actual state. A first create
+          # that failed leaves an empty ROLLBACK_COMPLETE stack that cannot be
+          # updated; a failed update whose rollback also failed cannot be
+          # updated until that rollback is continued.
+          STACK_STATUS=$(aws cloudformation describe-stacks \
+            --stack-name "$STACK_NAME" \
+            --query 'Stacks[0].StackStatus' --output text 2>/dev/null || echo "DOES_NOT_EXIST")
+          echo "Stack $STACK_NAME status: $STACK_STATUS"
+
+          case "$STACK_STATUS" in
+            DOES_NOT_EXIST)
+              STACK_ACTION="create-stack"
+              echo "Creating new stack $STACK_NAME"
+              ;;
+            ROLLBACK_COMPLETE)
+              echo "Failed initial create left an empty stack - deleting it so it can be created again"
+              aws cloudformation delete-stack --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-delete-complete --stack-name "$STACK_NAME"
+              STACK_ACTION="create-stack"
+              echo "Creating new stack $STACK_NAME"
+              ;;
+            UPDATE_ROLLBACK_FAILED)
+              echo "Previous update's rollback did not finish - continuing it before updating"
+              aws cloudformation continue-update-rollback --stack-name "$STACK_NAME"
+              aws cloudformation wait stack-rollback-complete --stack-name "$STACK_NAME"
+              STACK_ACTION="update-stack"
+              echo "Updating existing stack $STACK_NAME"
+              ;;
+            *_IN_PROGRESS)
+              echo "ERROR: stack is busy ($STACK_STATUS) - wait for the current operation to finish, then rerun"
+              exit 1
+              ;;
+            *)
+              STACK_ACTION="update-stack"
+              echo "Updating existing stack $STACK_NAME"
+              ;;
+          esac
 
           OUTPUT=$(aws cloudformation $STACK_ACTION \
             --stack-name "$STACK_NAME" \
