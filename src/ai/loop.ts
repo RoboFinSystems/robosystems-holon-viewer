@@ -93,7 +93,7 @@ export async function runToolLoop(
       if (block.type !== 'tool_use') continue
       onProgress?.(TOOL_STATUS[block.name] ?? 'Working')
       let content: string
-      let isError = false
+      let isError: boolean
       try {
         const run = await backend.runTool(block.name, block.input)
         content = run.content
