@@ -7,6 +7,13 @@ on:
     branches: [ main ]
   workflow_dispatch:
 
+# `test.yml` only checks out, installs and runs the gate — it needs no write
+# scope. The org default is already read-only, but that is one setting an
+# admin can flip; declaring it here makes the guarantee local to the workflow.
+# Matches deploy.yml, which declares its permissions at workflow level too.
+permissions:
+  contents: read
+
 jobs:
   test:
     runs-on: ubuntu-latest
