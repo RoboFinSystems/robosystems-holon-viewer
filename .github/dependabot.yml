@@ -1,5 +1,81 @@
 version: 2
 updates:
+  # npm — package.json and package-lock.json dependencies
+  - package-ecosystem: 'npm'
+    directory: '/'
+    schedule:
+      interval: 'monthly'
+    labels:
+      - 'dependencies'
+    # This repo commits its package-lock.json, so transitive dependencies are
+    # pinned until something moves them. Enabling the npm ecosystem is what
+    # lets Dependabot open lockfile-only security PRs for those — the nanoid
+    # advisory (GHSA-2v37-7h3g-55p8) sat at 3.3.16 behind vite -> postcss and
+    # had to be found and fixed by hand in #54, which is exactly the class of
+    # work this prevents.
+    #
+    # Routine minor/patch churn arrives as two PRs instead of a dozen. Majors
+    # are deliberately left ungrouped — they need individual triage, and
+    # grouping them would force an all-or-nothing call on unrelated bumps. The
+    # peer-locked families are the exception and are listed first, since a
+    # dependency joins the first group it matches: splitting those produces
+    # PRs that cannot go green on their own.
+    groups:
+      # vitest peers vite and @vitejs/plugin-react peers vite. No update-types
+      # filter, so majors travel together — a plugin major that requires the
+      # next vite major deadlocks both if they arrive separately.
+      vite-toolchain:
+        patterns:
+          - 'vite'
+          - 'vitest'
+          - '@vitejs/*'
+          - '@vitest/*'
+      # react and react-dom are versioned in lockstep, and the @types packages
+      # track them. A split major here type-checks against the wrong runtime.
+      react:
+        patterns:
+          - 'react'
+          - 'react-dom'
+          - '@types/react'
+          - '@types/react-dom'
+      # @eslint/js peers eslint at the *same major* (10.x peers ^10.0.0), so
+      # the two can only move together. typescript-eslint and the prettier
+      # bridge peer eslint across a range and are safe to carry along.
+      eslint:
+        patterns:
+          - 'eslint'
+          - '@eslint/js'
+          - 'typescript-eslint'
+          - 'eslint-config-prettier'
+          - 'eslint-plugin-prettier'
+      npm-production:
+        dependency-type: 'production'
+        update-types:
+          - 'minor'
+          - 'patch'
+      npm-development:
+        dependency-type: 'development'
+        update-types:
+          - 'minor'
+          - 'patch'
+    ignore:
+      # Blocked upstream: typescript-eslint v8 peers typescript
+      # ">=4.8.4 <6.1.0". TypeScript 7 is also the native Go port, so it is a
+      # migration to schedule rather than a bump to take. Drop this entry once
+      # typescript-eslint v9 supports the 7.x line.
+      - dependency-name: 'typescript'
+        update-types:
+          - 'version-update:semver-major'
+      #
+      # Deliberately NOT ignored here, unlike the sibling apps:
+      #
+      #   eslint      — robosystems-app and roboledger-app block the major
+      #                 because eslint-plugin-jsx-a11y and eslint-plugin-react
+      #                 cap at ^9. This repo depends on neither, so ESLint 10
+      #                 may well install cleanly. The TypeScript client took it
+      #                 without incident.
+      #   @types/node — not a dependency of this repo at all.
+
   # GitHub Actions — pinned action versions
   - package-ecosystem: 'github-actions'
     directory: '/'
