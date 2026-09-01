@@ -36,7 +36,7 @@
     "@types/jsonld": "^1.5.15",
     "@types/n3": "^1.26.1",
     "@types/react": "^19.1.9",
-    "@types/react-dom": "^19.1.9",
+    "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^4.3.4",
     "eslint": "^10.9.1",
     "eslint-config-prettier": "^10.0.0",
