@@ -20,7 +20,7 @@
     "feature:create": "./bin/create-feature.sh"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.110.0",
+    "@anthropic-ai/sdk": "^0.122.0",
     "@comunica/query-sparql-rdfjs": "^5.2.3",
     "@robosystems/client": "^1.12.0",
     "@robosystems/report-components": "^0.4.1",
