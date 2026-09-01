@@ -23,7 +23,7 @@
     "@anthropic-ai/sdk": "^0.110.0",
     "@comunica/query-sparql-rdfjs": "^5.2.3",
     "@robosystems/client": "^1.12.0",
-    "@robosystems/report-components": "^0.3.4",
+    "@robosystems/report-components": "^0.4.1",
     "jsonld": "^9.0.0",
     "n3": "^2.1.1",
     "react": "^19.2.0",
