@@ -27,7 +27,16 @@ export interface ChatBackend {
   tools: ToolDef[]
   /** Label for the generated-query reveal, e.g. 'SPARQL' or 'Cypher'. */
   queryLabel: string
-  runTool: (name: string, input: Record<string, unknown>) => Promise<ToolRun>
+  /**
+   * `onProgress` reports what the tool is doing while it runs — the remote
+   * MCP transport streams it back for long queries ("Fetched 5000 rows"), so
+   * the UI shows real work rather than a static label. Local tools ignore it.
+   */
+  runTool: (
+    name: string,
+    input: Record<string, unknown>,
+    onProgress?: (status: string) => void
+  ) => Promise<ToolRun>
 }
 
 export interface LoopResult {
@@ -91,11 +100,14 @@ export async function runToolLoop(
     const results: ContentBlock[] = []
     for (const block of res.blocks) {
       if (block.type !== 'tool_use') continue
-      onProgress?.(TOOL_STATUS[block.name] ?? 'Working')
+      const label = TOOL_STATUS[block.name] ?? 'Working'
+      onProgress?.(label)
       let content: string
       let isError: boolean
       try {
-        const run = await backend.runTool(block.name, block.input)
+        const run = await backend.runTool(block.name, block.input, (status) =>
+          onProgress?.(`${label} — ${status}`)
+        )
         content = run.content
         isError = run.isError ?? false
         if (run.query) lastQuery = run.query
