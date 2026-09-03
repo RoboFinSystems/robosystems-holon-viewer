@@ -46,7 +46,20 @@ export default defineConfig(({ mode }) => {
     optimizeDeps: useLocalRC ? { exclude: ['@robosystems/report-components'] } : undefined,
     server: {
       proxy: {
-        '/v1': { target: apiTarget, changeOrigin: true, secure: true },
+        '/v1': {
+          target: apiTarget,
+          changeOrigin: true,
+          secure: true,
+          // `changeOrigin` rewrites Host, not Origin — the browser's
+          // `http://localhost:5173` would still ride along, and the MCP
+          // transport answers 403 for an Origin outside the API's allowlist.
+          // Strip it: the proxy is a server-side caller, and the transport
+          // allows a request with no Origin at all (as every non-browser MCP
+          // client sends).
+          configure: (proxy) => {
+            proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
+          },
+        },
         // ElevenLabs TTS (voice). Distinct prefix from the RoboSystems `/v1`;
         // strip it so `/eleven/v1/...` reaches `api.elevenlabs.io/v1/...`.
         '/eleven': {

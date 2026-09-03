@@ -1,11 +1,16 @@
 /**
  * SEC-mode chat backend — read-only Cypher over the live SEC graph via the
- * RoboSystems MCP HTTP surface (`/mcp/call-tool`). The curated read set mirrors
- * the backend CypherOperator's READ_ONLY_TOOLS. The remote API is the tool
- * runner; this just forwards tool calls with the user's key.
+ * RoboSystems remote MCP transport (`POST /v1/graphs/{graph_id}/mcp`). The
+ * remote API is the tool runner; this just forwards tool calls with the user's
+ * key.
+ *
+ * The tool set is declared here rather than taken from the server's
+ * `tools/list`: it mirrors the backend CypherOperator's READ_ONLY_TOOLS, and
+ * the descriptions are written for this agent's workflow. A graph's live tool
+ * surface can include writes, which this read-only viewer must never offer.
  */
 import type { ChatBackend } from '../loop'
-import { callMcpTool } from '../mcp'
+import { createMcpSession } from '../mcp'
 import type { ToolDef } from '../provider'
 
 const TOOLS: ToolDef[] = [
@@ -54,14 +59,18 @@ RULES:
 - Never fabricate a figure — if the data does not contain it, say so plainly.`
 
 export function cypherBackend(apiKey: string, graphId: string): ChatBackend {
+  const session = createMcpSession(apiKey, graphId)
   return {
     system: SYSTEM,
     tools: TOOLS,
     queryLabel: 'Cypher',
-    runTool: async (name, input) => {
-      const content = await callMcpTool(apiKey, graphId, name, input)
+    runTool: async (name, input, onProgress) => {
+      // A failed tool answers with `isError` rather than throwing: the loop
+      // feeds the message back to the model, which reads it and retries.
+      const run = await session.callTool(name, input, onProgress)
       return {
-        content,
+        content: run.text,
+        isError: run.isError,
         query: name === 'read-graph-cypher' ? String(input.query ?? '') : undefined,
       }
     },
