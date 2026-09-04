@@ -7,7 +7,7 @@
 <!-- Grouped by area: report rendering, modes (file/SEC), keys drawer, AI + SPARQL, voice, shell.
 
      Note statement rendering largely lives in @robosystems/report-components and conversion in
-     robosystems-xbrl-holon — a local patch over either is overwritten or masks the real bug. -->
+     xbrlkit — a local patch over either is overwritten or masks the real bug. -->
 
 -
 

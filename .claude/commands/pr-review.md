@@ -34,7 +34,7 @@ gh api repos/$(gh repo view --json nameWithOwner -q .nameWithOwner)/pulls/<NUMBE
 - **Key handling first.** Users enter their own Anthropic, ElevenLabs, and RoboSystems keys on the promise that they stay in the browser and reach no app backend (there isn't one). Does the diff add **any** outbound call, log line, error reporter, analytics hook, or dependency with access to page state? Name every destination; a key reaching anywhere the user didn't knowingly authorize is the worst bug this app can ship, and it is a blocking finding.
 - **File mode offline guarantee**: opening a local holon must make no network call. A new fetch on that path breaks a stated promise.
 - **Rendering output**: does a displayed value, subtotal, or dimensional breakdown change? Users read these as financial statements.
-- **Right repo**: statement rendering lives in `@robosystems/report-components` and conversion in `robosystems-xbrl-holon`. A patch here over either gets overwritten or masks the real bug — flag it.
+- **Right repo**: statement rendering lives in `@robosystems/report-components` and conversion in `xbrlkit`. A patch here over either gets overwritten or masks the real bug — flag it.
 - **Client-side SPARQL**: is a new query bounded, or can a large report hang the tab?
 - **AI grounding**: does the agent's answer actually come from SPARQL results over the loaded report, rather than from the prompt? A confidently ungrounded answer is worse than a refusal.
 - **Build**: this ships as a static bundle with no server — a build-time mistake has no runtime fix.

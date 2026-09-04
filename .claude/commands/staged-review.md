@@ -21,7 +21,7 @@ If the diff adds any outbound call, name every destination and confirm it's a pr
 
 - Statement reconstruction comes from `@robosystems/report-components` over the holon's named graphs. A rendering fix that belongs upstream in that package will be overwritten by the next version bump — flag it and point there.
 - Does the change alter a **displayed number**, a subtotal, or a dimensional breakdown? Users read these as financial statements; a silent numeric change is the worst rendering outcome.
-- Does it hold for holons produced by `robosystems-xbrl-holon` generally, or only the file in front of you?
+- Does it hold for holons produced by `xbrlkit` generally, or only the file in front of you?
 
 ## Modes
 

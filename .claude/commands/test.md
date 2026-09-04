@@ -36,7 +36,7 @@ Success = a `Test Files ... passed` line, no failure markers, **and** the build 
 - **Unit tests can't cover the thing most likely to break.** This is a browser app with no backend: rendering, the keys drawer, in-browser SPARQL, and the AI agent are exercised by loading an actual report. After a green gate, open a holon in `npm run dev` and look.
 - **File mode must stay offline.** If you changed anything near loading, verify with the network throttled to offline — no test asserts that guarantee.
 - Rendering failures often belong to `@robosystems/report-components`, not here. Fixing them locally gets overwritten on the next version bump.
-- Sample holons come from `robosystems-xbrl-holon` (`holon build …`) if you need a specific filing shape.
+- Sample holons come from `xbrlkit` (`xbrlkit build …`) if you need a specific filing shape.
 
 ## Goal
 
