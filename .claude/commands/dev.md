@@ -31,11 +31,11 @@ There's no health endpoint to curl; the app either renders a report or it doesn'
 2. **SEC mode** — needs a RoboSystems API key entered in the keys drawer, and makes the authenticated call client-side.
 3. **AI / voice** — need Anthropic and ElevenLabs keys respectively, entered the same way. These spend real money per call; don't loop them while debugging.
 
-Sample holons come from `robosystems-xbrl-holon` (`holon build …`) — generate one rather than hunting for a fixture if you need a specific filing shape.
+Sample holons come from `xbrlkit` (`xbrlkit build …`) — generate one rather than hunting for a fixture if you need a specific filing shape.
 
 ## When it doesn't come up
 
 - **Blank page, no error** → check the browser console; a client-side render failure won't show in the terminal.
-- **A report renders wrong rather than not at all** → decide whether it's the holon or the viewer. Open the same file in a JSON viewer and check the underlying facts before debugging rendering; if the holon is wrong, the fix belongs in `robosystems-xbrl-holon`.
+- **A report renders wrong rather than not at all** → decide whether it's the holon or the viewer. Open the same file in a JSON viewer and check the underlying facts before debugging rendering; if the holon is wrong, the fix belongs in `xbrlkit`.
 - **Statement layout looks wrong** → that's likely `@robosystems/report-components`, not this repo. Fixing it here gets overwritten on the next version bump.
 - **Keys "disappear"** → they persist only in the browser by design; a different browser, profile, or a cleared site data wipes them. That's the intended model, not a bug.

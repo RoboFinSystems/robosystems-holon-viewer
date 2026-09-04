@@ -8,7 +8,7 @@ Create a GitHub issue for the current repository based on the user's input.
 ## Instructions
 
 1. **Work out which layer owns it** - This is a static, client-side viewer for `holon.jsonld` reports. Three other repos sit around it, and most "the report looks wrong" bugs belong to one of them:
-   - **The holon is wrong** — a fact is missing or has the wrong value in the document itself. That's `RoboFinSystems/robosystems-xbrl-holon` (the converter), or the source filing. Open the file and check the underlying facts before blaming rendering.
+   - **The holon is wrong** — a fact is missing or has the wrong value in the document itself. That's `RoboFinSystems/xbrlkit` (the converter), or the source filing. Open the file and check the underlying facts before blaming rendering.
    - **The statement renders wrong** — the holon is correct but the table, subtotal, or dimensional breakdown is off. That's usually `RoboFinSystems/robosystems-report-components`, which owns the rendering. Fixing it here would be overwritten on the next version bump.
    - **SEC mode data** — the live graph returned something unexpected. That's `RoboFinSystems/robosystems`.
    - **Belongs here**: file loading, mode switching, the keys drawer, the AI agent and its SPARQL tools, in-browser query execution, voice, navigation, and the app shell.

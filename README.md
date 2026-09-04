@@ -20,7 +20,7 @@ npm install      # Install dependencies
 npm run dev      # Start the dev server (Vite, default http://localhost:5173)
 ```
 
-Open the bundled sample report, or drag in your own `holon.jsonld`. Build a holon from any SEC filing with [`robosystems-xbrl-holon`](https://github.com/RoboFinSystems/robosystems-xbrl-holon).
+Open the bundled sample report, or drag in your own `holon.jsonld`. Build a holon from any SEC filing with [`xbrlkit`](https://github.com/RoboFinSystems/xbrlkit).
 
 ### Configuration
 
