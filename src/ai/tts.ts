@@ -1,12 +1,15 @@
 /**
  * ElevenLabs text-to-speech, called directly from the browser (BYO key via the
  * `xi-api-key` header) — the same request shape the content-machine pipeline
- * makes server-side (`tools/generate_voiceover_audio.py`): the
- * `eleven_turbo_v2_5` model and the house voice settings.
+ * makes server-side (`tools/generate_voiceover_audio.py`). Which model, bitrate
+ * and voice settings ride the request is a `VoicePreset` (`./voices`), chosen
+ * in Settings; the default is the house setting the narrations ship with.
  *
  * Dev uses a relative `/eleven` base so the request rides the Vite proxy (the
  * API's CORS aside); prod calls `api.elevenlabs.io` directly. Mirrors `mcp.ts`.
  */
+import { DEFAULT_VOICE_PRESET_ID, type VoicePreset, voicePreset } from './voices'
+
 const viteEnv = (import.meta as { env?: { DEV?: boolean } }).env
 // Dev: relative → Vite proxy rewrites `/eleven` → api.elevenlabs.io.
 // Prod: call ElevenLabs directly.
@@ -15,13 +18,12 @@ const BASE = viteEnv?.DEV ? '/eleven' : 'https://api.elevenlabs.io'
 /** The default narrator voice — overridable per user via the Keys drawer. */
 export const DEFAULT_VOICE_ID = 'GZ4PpFJV8ikEGUtBrjK7'
 
-const MODEL_ID = 'eleven_turbo_v2_5'
-const VOICE_SETTINGS = {
-  stability: 0.7,
-  similarity_boost: 0.8,
-  style: 0.3,
-  use_speaker_boost: true,
-}
+/**
+ * The most text one request carries — the content machine's chunk size
+ * (`blog_common.chunk_text`), comfortably under every model's per-request
+ * limit. Longer text is split on paragraph, then sentence, boundaries.
+ */
+export const TTS_CHUNK_CHARS = 2500
 
 // Respell terms the model mispronounces — ported from content-machine's
 // `normalize_for_tts` so both surfaces read them the same way. Audio only; the
@@ -169,6 +171,38 @@ export function stripMarkdown(md: string): string {
     .trim()
 }
 
+/**
+ * Split text into chunks of at most `limit` characters on paragraph boundaries,
+ * falling back to sentence ends for an over-long paragraph — the port of the
+ * content machine's `chunk_text`. Chunks are synthesized one request each and
+ * played back to back, so a long answer on the slow model starts speaking on
+ * its first chunk rather than after the whole thing.
+ */
+export function chunkForTts(text: string, limit = TTS_CHUNK_CHARS): string[] {
+  const chunks: string[] = []
+  let current = ''
+  const push = () => {
+    if (current) chunks.push(current)
+    current = ''
+  }
+  for (const paragraph of text
+    .split(/\n\s*\n/)
+    .map((p) => p.trim())
+    .filter(Boolean)) {
+    if (paragraph.length > limit) {
+      for (const sentence of paragraph.split(/(?<=[.!?])\s+/)) {
+        if (current && current.length + sentence.length + 1 > limit) push()
+        current = current ? `${current} ${sentence}` : sentence
+      }
+      continue
+    }
+    if (current && current.length + paragraph.length + 2 > limit) push()
+    current = current ? `${current}\n\n${paragraph}` : paragraph
+  }
+  push()
+  return chunks
+}
+
 function describeStatus(status: number): string {
   switch (status) {
     case 401:
@@ -187,16 +221,19 @@ function describeStatus(status: number): string {
 }
 
 /**
- * Synthesize `text` to speech and return the audio as a Blob (audio/mpeg).
- * Throws an Error with a friendly message on failure.
+ * Synthesize `text` to speech with `preset`'s model and settings and return the
+ * audio as a Blob (audio/mpeg). Throws an Error with a friendly message on
+ * failure. `text` should already be one chunk (see `chunkForTts`).
  */
 export async function synthesizeSpeech(
   apiKey: string,
   text: string,
-  voiceId?: string
+  voiceId?: string,
+  preset: VoicePreset = voicePreset(DEFAULT_VOICE_PRESET_ID)
 ): Promise<Blob> {
   const voice = voiceId?.trim() || DEFAULT_VOICE_ID
-  const res = await fetch(`${BASE}/v1/text-to-speech/${encodeURIComponent(voice)}`, {
+  const url = `${BASE}/v1/text-to-speech/${encodeURIComponent(voice)}?output_format=${encodeURIComponent(preset.outputFormat)}`
+  const res = await fetch(url, {
     method: 'POST',
     headers: {
       'xi-api-key': apiKey,
@@ -205,8 +242,8 @@ export async function synthesizeSpeech(
     },
     body: JSON.stringify({
       text: normalizeForTts(text),
-      model_id: MODEL_ID,
-      voice_settings: VOICE_SETTINGS,
+      model_id: preset.modelId,
+      voice_settings: preset.voiceSettings,
     }),
   })
   if (!res.ok) {

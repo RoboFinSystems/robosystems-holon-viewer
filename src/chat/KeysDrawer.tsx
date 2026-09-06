@@ -11,9 +11,11 @@
 import { type ReactNode, useEffect, useState } from 'react'
 import { MODELS } from '../ai/models'
 import { DEFAULT_VOICE_ID } from '../ai/tts'
+import { VOICE_PRESETS } from '../ai/voices'
 import { Spinner } from '../components/Spinner'
 import { type PersistentApiKey, usePersistentApiKey } from '../hooks/usePersistentApiKey'
 import { usePersistentModel } from '../hooks/usePersistentModel'
+import { usePersistentVoicePreset } from '../hooks/usePersistentVoicePreset'
 import { validateSecKey } from '../sec/client'
 
 interface KeysDrawerProps {
@@ -162,6 +164,41 @@ function ModelRow() {
 }
 
 /**
+ * The ElevenLabs preset selector — model, bitrate and voice settings — its own
+ * titled section inside the ElevenLabs card. Fidelity vs. first-word latency is
+ * the user's call (v3 sounds better and starts later), so it sits right under
+ * the key that pays for it. Persisted via `usePersistentVoicePreset`.
+ */
+function VoicePresetRow() {
+  const { preset, setPreset } = usePersistentVoicePreset()
+
+  return (
+    <div className="keys-subsection">
+      <div className="keys-row-head">
+        <strong>Quality</strong>
+      </div>
+      <p className="hint keys-blurb">
+        Which ElevenLabs model reads aloud. Quality is the house narration setting; Fast starts
+        speaking sooner.
+      </p>
+      <select
+        className="keys-input"
+        value={preset.id}
+        onChange={(e) => setPreset(e.target.value)}
+        aria-label="Voice quality"
+      >
+        {VOICE_PRESETS.map((p) => (
+          <option key={p.id} value={p.id}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+      <p className="hint keys-blurb">{preset.blurb}</p>
+    </div>
+  )
+}
+
+/**
  * The optional ElevenLabs Voice ID override — its own titled section inside the
  * ElevenLabs card (blank = the built-in default narrator).
  */
@@ -276,7 +313,14 @@ export function KeysDrawer({ open, onClose }: KeysDrawerProps) {
             apiKey={eleven}
             placeholder="ElevenLabs API key"
             savedLabel="Saved"
-            extra={eleven.isStored ? <VoiceIdRow voice={voice} /> : null}
+            extra={
+              eleven.isStored ? (
+                <>
+                  <VoicePresetRow />
+                  <VoiceIdRow voice={voice} />
+                </>
+              ) : null
+            }
           />
         </div>
       </div>

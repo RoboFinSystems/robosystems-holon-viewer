@@ -9,7 +9,7 @@ RoboSystems Holon Viewer is a static, client-side renderer for `holon.jsonld` fi
 - **Fact Inspection**: Inspect any fact — its element, period, unit, and the calculation rule it participates in — directly in the statement tables.
 - **AI Analysis**: Ask questions of the loaded report in natural language. A Claude-powered agent answers by querying the report in your browser (MCP-style tools) — SPARQL over a holon's RDF, jq over a Tavi model's JSON — so responses are grounded in the report's actual facts. The two hand-offs are the same shape (a describe tool, then one query tool), so the report's representation is the only thing that differs.
 - **One-Click Summary**: Generate an AI narrative overview of the report on demand.
-- **Voice**: Have summaries and answers read aloud via ElevenLabs text-to-speech, with a configurable voice.
+- **Voice**: Have summaries and answers read aloud via ElevenLabs text-to-speech, with a configurable voice and quality preset — the same `eleven_v3` house setting the content-machine narrations ship with, or Turbo when you would rather it start speaking sooner.
 - **In-Browser Query Engines**: A Comunica SPARQL engine runs client-side over a holon's RDF, and jq (compiled to WebAssembly, in a Web Worker with a wall-clock limit) over a Tavi model — both power the AI's query tool with no server round-trip.
 - **Bring-Your-Own Keys**: Anthropic, ElevenLabs, and RoboSystems API keys are entered in a keys drawer and persisted only in your browser — never sent to an app backend (there isn't one).
 
