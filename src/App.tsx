@@ -58,7 +58,7 @@ export function App() {
     <div className="app">
       <header className="app-header">
         <div className="brand">
-          <img className="brand-logo" src="/images/logos/robosystems.png" alt="RoboSystems" />
+          <img className="brand-logo" src="/images/logos/logo_black.png" alt="RoboSystems" />
           <div className="brand-name">RoboSystems Holon Viewer</div>
         </div>
 
