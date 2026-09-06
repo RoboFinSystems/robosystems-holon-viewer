@@ -3,9 +3,11 @@ import { reportSections, sliceReportSection } from '@robosystems/report-componen
 import { parseJsonld } from '@robosystems/report-components/adapters'
 import type { Store } from 'n3'
 import type { DragEvent } from 'react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { buildStore } from '../ai/rdf'
+import { Spinner } from '../components/Spinner'
 import { SectionedReport } from '../report/SectionedReport'
+import { holonUrlName, holonUrlParam } from './openUrl'
 
 const SAMPLE_URL = '/samples/0001045810-26-000021.holon.jsonld'
 
@@ -30,6 +32,9 @@ interface FileModeProps {
 export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps) {
   const [error, setError] = useState<string | null>(null)
   const [dragging, setDragging] = useState(false)
+  // The URL being fetched for a `?url=` open, while it is in flight.
+  const [loadingUrl, setLoadingUrl] = useState<string | null>(null)
+  const openedFromUrl = useRef(false)
 
   // A holon is fully in memory, so a section loads instantly — slice it out of
   // the parsed report. Same shared surface the SEC mode uses.
@@ -69,6 +74,27 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
     },
     [onLoaded]
   )
+
+  // Open the holon named in the page URL (`?url=`) once, on first mount: the
+  // link the company pages and the catalog write. Guarded by a ref so a later
+  // "Load another" does not reopen it.
+  useEffect(() => {
+    if (openedFromUrl.current) return
+    const url = holonUrlParam(window.location.search)
+    if (!url) return
+    openedFromUrl.current = true
+    setLoadingUrl(url)
+    fetch(url)
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`)
+        return r.text()
+      })
+      .then((text) => loadText(text, holonUrlName(url)))
+      .catch((e) =>
+        setError(`Could not load ${url}: ${e instanceof Error ? e.message : String(e)}`)
+      )
+      .finally(() => setLoadingUrl(null))
+  }, [loadText])
 
   const onFiles = useCallback(
     (files: FileList | null) => {
@@ -117,6 +143,14 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
         loadSection={loadSection}
         header={header}
       />
+    )
+  }
+
+  if (loadingUrl) {
+    return (
+      <div className="loading-center">
+        <Spinner label={`Loading ${loadingUrl}…`} />
+      </div>
     )
   }
 
