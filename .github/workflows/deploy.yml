@@ -17,6 +17,12 @@ name: Deploy
 #      run CloudFormation + S3 + CloudFront.
 #
 # Manual only — deployments are an explicit action, never automatic on push.
+#
+# Approval-gated: the deploy job binds the `production` GitHub environment
+# (required reviewer, deployment refs main / release/*), so a dispatched run
+# waits under "Review deployments" before npm ci — nothing is built or synced
+# for an unapproved run. The rules live in the repo's environment settings,
+# not here; a fork without that environment deploys ungated.
 
 on:
   workflow_dispatch:
@@ -33,10 +39,21 @@ permissions:
   id-token: write
   contents: read
 
+# One deploy at a time: two overlapping runs would race the S3 sync --delete
+# and the CloudFront invalidation.
+concurrency:
+  group: holon-viewer-deploy
+  cancel-in-progress: false
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     timeout-minutes: 30 # CloudFront + ACM cert validation can be slow on first create
+    # Every step waits on this environment's required reviewer; the URL puts
+    # the live site on the Deployments tab once the run finishes.
+    environment:
+      name: production
+      url: ${{ steps.outputs.outputs.url }}
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
     steps:
