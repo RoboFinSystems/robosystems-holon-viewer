@@ -3,7 +3,10 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/png" href="/images/logos/robosystems.png" />
+    <!-- The SVG icon flips black→white via a prefers-color-scheme query inside the file
+         (Chrome honours it in a favicon); the PNG is the black fallback Safari and crawlers use. -->
+    <link rel="icon" href="/icon.png" type="image/png" sizes="512x512" />
+    <link rel="icon" href="/icon.svg" type="image/svg+xml" sizes="any" />
 
     <title>Holon Viewer — Explore holon.jsonld financial reports · RoboSystems</title>
     <meta
@@ -22,7 +25,7 @@
       content="View holon.jsonld financial reports serialized from RoboSystems. Open a report file to explore its financial knowledge graph, or connect API keys to browse SEC filings."
     />
     <meta property="og:url" content="https://holon.robosystems.ai/" />
-    <meta property="og:image" content="https://holon.robosystems.ai/images/logos/robosystems.png" />
+    <meta property="og:image" content="https://holon.robosystems.ai/icon.png" />
 
     <!-- Twitter -->
     <meta name="twitter:card" content="summary" />
@@ -31,10 +34,7 @@
       name="twitter:description"
       content="View holon.jsonld financial reports serialized from RoboSystems. Open a report file to explore its financial knowledge graph, or connect API keys to browse SEC filings."
     />
-    <meta
-      name="twitter:image"
-      content="https://holon.robosystems.ai/images/logos/robosystems.png"
-    />
+    <meta name="twitter:image" content="https://holon.robosystems.ai/icon.png" />
   </head>
   <body>
     <div id="root"></div>
