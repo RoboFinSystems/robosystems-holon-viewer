@@ -1,10 +1,10 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { reportSections, sliceReportSection } from '@robosystems/report-components'
-import { parseReportDocument } from '@robosystems/report-components/adapters'
-import type { Store } from 'n3'
+import { parseReportDocument, type TaviDocument } from '@robosystems/report-components/adapters'
 import type { DragEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { buildStore } from '../ai/rdf'
+import type { ReportSource } from '../ai/source'
 import { Spinner } from '../components/Spinner'
 import { SectionedReport } from '../report/SectionedReport'
 import { holonUrlName, holonUrlParam } from './openUrl'
@@ -16,8 +16,8 @@ interface FileModeProps {
   report: NormalizedReport | null
   /** File name of the loaded report — keys the section view so it resets per file. */
   fileName: string | null
-  /** Called when a report parses — with the queryable RDF store for a holon, null for a Tavi model. */
-  onLoaded: (report: NormalizedReport, store: Store | null, fileName: string) => void
+  /** Called when a report parses — with the file's queryable form (RDF store or Tavi document) for the chat. */
+  onLoaded: (report: NormalizedReport, source: ReportSource, fileName: string) => void
   /** Clear the loaded report and return to the dropzone. */
   onReset: () => void
 }
@@ -58,16 +58,21 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
   const loadText = useCallback(
     async (text: string, name: string) => {
       try {
-        const { format, report: parsed } = await parseReportDocument(text)
+        const json = JSON.parse(text) as object
+        const { format, report: parsed } = await parseReportDocument(json)
         if (!parsed.informationBlocks.length) {
           setError('No sections found — is this a holon or a Tavi report?')
           return
         }
-        // A holon is RDF: build the queryable store from the same document so
-        // the chat can run SPARQL over it (report-components discards its own).
-        // A Tavi model has no graph, so the chat has nothing to query.
-        const store = format === 'holon' ? await buildStore(text) : null
-        onLoaded(parsed, store, name)
+        // Keep the file's own queryable form beside the rendered report. A holon
+        // is RDF: rebuild the store from the same document so the chat can run
+        // SPARQL over it (report-components discards its own). A Tavi model is
+        // one JSON document: the chat runs jq over it as-is.
+        const source: ReportSource =
+          format === 'holon'
+            ? { format, store: await buildStore(json) }
+            : { format, doc: json as TaviDocument, text }
+        onLoaded(parsed, source, name)
         setError(null)
       } catch (e) {
         setError(e instanceof Error ? e.message : String(e))

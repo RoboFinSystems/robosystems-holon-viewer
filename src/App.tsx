@@ -1,7 +1,7 @@
 import type { NormalizedReport } from '@robosystems/report-components'
-import type { Store } from 'n3'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import type { SecReportContext } from './ai/reportContext'
+import type { ReportSource } from './ai/source'
 import { KeysDrawer } from './chat/KeysDrawer'
 import { BotIcon, GearIcon, GitHubIcon } from './components/icons'
 import { Spinner } from './components/Spinner'
@@ -18,7 +18,8 @@ type Mode = 'file' | 'sec'
 export function App() {
   const [mode, setMode] = useState<Mode>('file')
   const [report, setReport] = useState<NormalizedReport | null>(null)
-  const [store, setStore] = useState<Store | null>(null)
+  // The loaded file's queryable form (RDF store or Tavi document), for the chat.
+  const [source, setSource] = useState<ReportSource | null>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [chatOpen, setChatOpen] = useState(false)
   // Mounts the lazy drawer on first open, then keeps it mounted (state + layout).
@@ -28,14 +29,14 @@ export function App() {
   // key its summary/pin on it. Null in file mode and when browsing.
   const [secContext, setSecContext] = useState<SecReportContext | null>(null)
 
-  const onLoaded = useCallback((r: NormalizedReport, s: Store | null, name: string) => {
+  const onLoaded = useCallback((r: NormalizedReport, s: ReportSource, name: string) => {
     setReport(r)
-    setStore(s)
+    setSource(s)
     setFileName(name)
   }, [])
   const onReset = useCallback(() => {
     setReport(null)
-    setStore(null)
+    setSource(null)
     setFileName(null)
   }, [])
 
@@ -143,7 +144,7 @@ export function App() {
               onClose={() => setChatOpen(false)}
               mode={mode}
               report={report}
-              store={store}
+              source={source}
               secContext={mode === 'sec' ? secContext : null}
               onOpenSettings={openSettings}
             />

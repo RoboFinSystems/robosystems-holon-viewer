@@ -7,10 +7,10 @@ RoboSystems Holon Viewer is a static, client-side renderer for `holon.jsonld` fi
 - **Statement Rendering**: Reconstructs the complete report — balance sheet, income statement, cash flow, equity, and every disclosure section — from the holon's scene / boundary / projection named graphs, with a table-of-contents sidebar for navigation.
 - **Dimensional Facts & Disclosures**: Renders dimensional breakdowns (segments and other axes) and text-block note disclosures alongside the numeric statements, at full fidelity.
 - **Fact Inspection**: Inspect any fact — its element, period, unit, and the calculation rule it participates in — directly in the statement tables.
-- **AI Analysis**: Ask questions of the loaded report in natural language. A Claude-powered agent answers by running SPARQL over the holon in your browser (MCP-style tools), so responses are grounded in the report's actual facts.
+- **AI Analysis**: Ask questions of the loaded report in natural language. A Claude-powered agent answers by querying the report in your browser (MCP-style tools) — SPARQL over a holon's RDF, jq over a Tavi model's JSON — so responses are grounded in the report's actual facts. The two hand-offs are the same shape (a describe tool, then one query tool), so the report's representation is the only thing that differs.
 - **One-Click Summary**: Generate an AI narrative overview of the report on demand.
 - **Voice**: Have summaries and answers read aloud via ElevenLabs text-to-speech, with a configurable voice.
-- **In-Browser SPARQL**: A Comunica SPARQL engine runs entirely client-side over the report's RDF — it powers the AI's query tool with no server round-trip.
+- **In-Browser Query Engines**: A Comunica SPARQL engine runs client-side over a holon's RDF, and jq (compiled to WebAssembly, in a Web Worker with a wall-clock limit) over a Tavi model — both power the AI's query tool with no server round-trip.
 - **Bring-Your-Own Keys**: Anthropic, ElevenLabs, and RoboSystems API keys are entered in a keys drawer and persisted only in your browser — never sent to an app backend (there isn't one).
 
 ## Quick Start
@@ -97,7 +97,7 @@ Keys are entered in the app's keys drawer and stored only in your browser.
 
 - Vite + React 19 + TypeScript single-page app
 - [`@robosystems/report-components`](https://github.com/RoboFinSystems/robosystems-report-components) — the source-agnostic rendering library shared with the RoboLedger app and others; this repo is the shell around it
-- N3.js quad store + Comunica for in-browser RDF and SPARQL
+- N3.js quad store + Comunica for in-browser RDF and SPARQL; jq-wasm (in a Web Worker) for in-browser jq over Tavi models
 - Anthropic SDK for AI; ElevenLabs for voice
 - `@robosystems/client` (RoboSystems TypeScript SDK) for SEC-mode reads
 
