@@ -1,7 +1,7 @@
 /**
  * Research-coverage lookup for the public equity-research portal.
  *
- * The SEC report page links out to robosystems.ai/research/<ticker> — but only
+ * The SEC report page links out to roboinvestor.ai/research/<ticker> — but only
  * a subset of tickers are covered, and an uncovered ticker 404s there. Rather
  * than duplicate the research portal in this viewer, we do the cheapest check
  * that keeps the link honest: fetch the same public catalog the portal is built
@@ -16,7 +16,7 @@ const CATALOG_URL =
 
 /** Base for the outbound per-ticker links (trailing slash trimmed). */
 const RESEARCH_BASE_URL = (
-  viteEnv?.VITE_RESEARCH_BASE_URL ?? 'https://robosystems.ai/research'
+  viteEnv?.VITE_RESEARCH_BASE_URL ?? 'https://roboinvestor.ai/research'
 ).replace(/\/+$/, '')
 
 interface CatalogItem {

@@ -77,6 +77,6 @@ describe('research coverage gate', () => {
 
   it('builds a lower-cased outbound URL', async () => {
     const { researchUrl } = await freshModule()
-    expect(researchUrl('JEF')).toBe('https://robosystems.ai/research/jef')
+    expect(researchUrl('JEF')).toBe('https://roboinvestor.ai/research/jef')
   })
 })
