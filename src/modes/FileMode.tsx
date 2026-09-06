@@ -1,6 +1,6 @@
 import type { NormalizedReport } from '@robosystems/report-components'
 import { reportSections, sliceReportSection } from '@robosystems/report-components'
-import { parseJsonld } from '@robosystems/report-components/adapters'
+import { parseReportDocument } from '@robosystems/report-components/adapters'
 import type { Store } from 'n3'
 import type { DragEvent } from 'react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -16,16 +16,16 @@ interface FileModeProps {
   report: NormalizedReport | null
   /** File name of the loaded report — keys the section view so it resets per file. */
   fileName: string | null
-  /** Called when a holon parses successfully — with the queryable RDF store. */
-  onLoaded: (report: NormalizedReport, store: Store, fileName: string) => void
+  /** Called when a report parses — with the queryable RDF store for a holon, null for a Tavi model. */
+  onLoaded: (report: NormalizedReport, store: Store | null, fileName: string) => void
   /** Clear the loaded report and return to the dropzone. */
   onReset: () => void
 }
 
 /**
- * Mode A — offline, zero-auth. Drop (or pick) a report's `holon.jsonld`; the
- * library parses it client-side and the shared components render it. No
- * network, no key, no backend. The loaded-file chip + "Load another" live in
+ * Mode A — offline, zero-auth. Drop (or pick) a report's `holon.jsonld` or
+ * `tavi.json`; the library sniffs which it is, parses it client-side and the
+ * shared components render it. No network, no key, no backend. The loaded-file chip + "Load another" live in
  * the app header (`App` owns that state); this renders the dropzone, then the
  * report once one is loaded.
  */
@@ -58,14 +58,15 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
   const loadText = useCallback(
     async (text: string, name: string) => {
       try {
-        const parsed = await parseJsonld(text)
+        const { format, report: parsed } = await parseReportDocument(text)
         if (!parsed.informationBlocks.length) {
-          setError('No Information Blocks found — is this a holon report?')
+          setError('No sections found — is this a holon or a Tavi report?')
           return
         }
-        // Build the queryable RDF store from the same document so the chat can
-        // run SPARQL over it (report-components discards its internal store).
-        const store = await buildStore(text)
+        // A holon is RDF: build the queryable store from the same document so
+        // the chat can run SPARQL over it (report-components discards its own).
+        // A Tavi model has no graph, so the chat has nothing to query.
+        const store = format === 'holon' ? await buildStore(text) : null
         onLoaded(parsed, store, name)
         setError(null)
       } catch (e) {
@@ -165,10 +166,10 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
         onDragLeave={() => setDragging(false)}
         onDrop={onDrop}
       >
-        <h2>Open a holon.jsonld</h2>
+        <h2>Open a holon.jsonld or tavi.json</h2>
         <p>
-          Drag &amp; drop a report&apos;s <code>holon.jsonld</code> here, or choose a file.
-          Everything runs in your browser.
+          Drag &amp; drop a report&apos;s <code>holon.jsonld</code> or <code>tavi.json</code> here,
+          or choose a file. Everything runs in your browser.
         </p>
         <div
           style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}
@@ -177,7 +178,7 @@ export function FileMode({ report, fileName, onLoaded, onReset }: FileModeProps)
             Choose file
             <input
               type="file"
-              accept=".jsonld,.json,application/ld+json"
+              accept=".jsonld,.json,application/ld+json,application/json"
               onChange={(e) => onFiles(e.target.files)}
             />
           </label>
