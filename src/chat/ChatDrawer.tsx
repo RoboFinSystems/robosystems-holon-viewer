@@ -283,6 +283,11 @@ export function ChatDrawer({
               <>
                 Connect to the SEC graph in the <strong>Graph</strong> tab first.
               </>
+            ) : report ? (
+              <>
+                This report was opened from a <code>tavi.json</code>, which carries no RDF graph to
+                query. Ask works on a <code>holon.jsonld</code>.
+              </>
             ) : (
               <>
                 Open a <code>holon.jsonld</code> in <strong>File</strong> mode, then ask about it.

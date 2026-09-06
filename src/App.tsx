@@ -28,7 +28,7 @@ export function App() {
   // key its summary/pin on it. Null in file mode and when browsing.
   const [secContext, setSecContext] = useState<SecReportContext | null>(null)
 
-  const onLoaded = useCallback((r: NormalizedReport, s: Store, name: string) => {
+  const onLoaded = useCallback((r: NormalizedReport, s: Store | null, name: string) => {
     setReport(r)
     setStore(s)
     setFileName(name)
