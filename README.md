@@ -89,7 +89,7 @@ Keys are entered in the app's keys drawer and stored only in your browser.
 - Fork this repo
 - AWS account with IAM Identity Center (SSO)
 - S3 + CloudFront for static hosting, provisioned via CloudFormation
-- A `production` GitHub environment on the repo (required reviewer; deployment refs `main`, `release/*`): the deploy job binds it, so every production deploy pauses for approval
+- A `production` GitHub environment on the repo (required reviewer; deployment refs `main`, `release/*`): the deploy workflow's gate job binds it, so every production deploy pauses for approval
 
 ## Architecture
 

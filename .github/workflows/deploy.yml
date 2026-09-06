@@ -18,11 +18,17 @@ name: Deploy
 #
 # Manual only — deployments are an explicit action, never automatic on push.
 #
-# Approval-gated: the deploy job binds the `production` GitHub environment
+# Approval-gated: the `gate` job binds the `production` GitHub environment
 # (required reviewer, deployment refs main / release/*), so a dispatched run
-# waits under "Review deployments" before npm ci — nothing is built or synced
-# for an unapproved run. The rules live in the repo's environment settings,
-# not here; a fork without that environment deploys ungated.
+# waits under "Review deployments" before anything runs — nothing is built or
+# synced for an unapproved run. The rules live in the repo's environment
+# settings, not here; a fork without that environment deploys ungated.
+#
+# Only `gate` binds the environment. A job that references an environment
+# presents an environment-scoped OIDC subject (repo:…:environment:production)
+# instead of the branch ref, and the frontend deploy role trusts refs only —
+# binding it on the deploy job made AssumeRoleWithWebIdentity fail (run
+# 34009528908). Same shape as the app repos' create-deployment job.
 
 on:
   workflow_dispatch:
@@ -46,14 +52,21 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  deploy:
+  gate:
     runs-on: ubuntu-latest
-    timeout-minutes: 30 # CloudFront + ACM cert validation can be slow on first create
-    # Every step waits on this environment's required reviewer; the URL puts
-    # the live site on the Deployments tab once the run finishes.
+    # The Deployments-tab record belongs to this job, so it reads "success" at
+    # approval time; the run's own status is the deploy result.
     environment:
       name: production
-      url: ${{ steps.outputs.outputs.url }}
+      url: ${{ vars.VIEWER_DOMAIN != '' && format('https://{0}', vars.VIEWER_DOMAIN) || '' }}
+    steps:
+      - name: Approved
+        run: echo "Production deploy approved for ${GITHUB_REF_NAME} at ${GITHUB_SHA}"
+
+  deploy:
+    needs: [gate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30 # CloudFront + ACM cert validation can be slow on first create
     env:
       AWS_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
     steps:
