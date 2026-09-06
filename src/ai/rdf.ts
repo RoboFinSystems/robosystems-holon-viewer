@@ -11,8 +11,8 @@ import type { JsonLdDocument } from 'jsonld'
 import jsonld from 'jsonld'
 import { Parser, Store } from 'n3'
 
-export async function buildStore(holonText: string): Promise<Store> {
-  const json = JSON.parse(holonText) as JsonLdDocument
+export async function buildStore(holon: string | object): Promise<Store> {
+  const json = (typeof holon === 'string' ? JSON.parse(holon) : holon) as JsonLdDocument
   // N-Quads preserves the holon's named graphs (scene/boundary/projection).
   const nquads = (await jsonld.toRDF(json, { format: 'application/n-quads' })) as string
   return new Store(new Parser({ format: 'application/n-quads' }).parse(nquads))

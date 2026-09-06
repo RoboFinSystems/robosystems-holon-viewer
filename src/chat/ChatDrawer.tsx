@@ -1,14 +1,16 @@
 import type { NormalizedReport } from '@robosystems/report-components'
-import type { Store } from 'n3'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import { AnthropicProvider } from '../ai/anthropic'
 import { cypherBackend } from '../ai/backends/cypher'
+import { jqBackend } from '../ai/backends/jq'
 import { sparqlBackend } from '../ai/backends/sparql'
+import { workerJqRunner } from '../ai/jqRunner'
 import { type ChatBackend, runToolLoop } from '../ai/loop'
 import type { AIMessage } from '../ai/provider'
 import { type SecReportContext, SUMMARY_PROMPT, secContextNote } from '../ai/reportContext'
+import type { ReportSource } from '../ai/source'
 import { stripMarkdown } from '../ai/tts'
 import { Spinner } from '../components/Spinner'
 import { usePersistentApiKey } from '../hooks/usePersistentApiKey'
@@ -21,18 +23,18 @@ interface ChatTurn {
   error?: boolean
   /** The query the loop generated for this answer (assistant turns). */
   query?: string
-  /** 'SPARQL' | 'Cypher' — labels the query reveal. */
+  /** 'SPARQL' | 'jq' | 'Cypher' — labels the query reveal. */
   queryLabel?: string
 }
 
 interface ChatDrawerProps {
   open: boolean
   onClose: () => void
-  /** Current source mode — picks SPARQL (file) vs Cypher (SEC). */
+  /** Current source mode — picks a local file backend vs Cypher (SEC). */
   mode: 'file' | 'sec'
-  /** File mode: the loaded report + its queryable RDF store. */
+  /** File mode: the loaded report + its queryable form (RDF store or Tavi document). */
   report: NormalizedReport | null
-  store: Store | null
+  source: ReportSource | null
   /** SEC mode: the filing on screen (or null), so the chat can key on it. */
   secContext: SecReportContext | null
   /** Open the Keys drawer — where the Anthropic (and other) keys are entered. */
@@ -43,8 +45,9 @@ const SUMMARY_DISPLAY = 'Give me a business summary of this report.'
 
 /**
  * Mode-agnostic chat drawer — a right-side panel that pushes the content aside.
- * It picks a `ChatBackend` by mode: File → SPARQL over the in-memory RDF; SEC →
- * read-only Cypher over the live graph. Keys are entered in the Keys drawer.
+ * It picks a `ChatBackend` by source: a holon → SPARQL over the in-memory RDF;
+ * a Tavi model → jq over the document in a worker; SEC → read-only Cypher over
+ * the live graph. Keys are entered in the Keys drawer.
  *
  * Two report-aware extras: a one-click business **Summary** on the empty state
  * (keyed on the report in context — always injected for SEC), and, in SEC mode,
@@ -57,7 +60,7 @@ export function ChatDrawer({
   onClose,
   mode,
   report,
-  store,
+  source,
   secContext,
   onOpenSettings,
 }: ChatDrawerProps) {
@@ -78,8 +81,14 @@ export function ChatDrawer({
 
   const backend = useMemo<ChatBackend | null>(() => {
     if (mode === 'sec') return sec.key ? cypherBackend(sec.key, 'sec') : null
-    return report && store ? sparqlBackend(report, store) : null
-  }, [mode, sec.key, report, store])
+    if (!report || !source) return null
+    return source.format === 'holon'
+      ? sparqlBackend(source.store)
+      : jqBackend(source.doc, workerJqRunner(source.text))
+  }, [mode, sec.key, report, source])
+
+  // A replaced backend releases what it holds (the jq worker and its document).
+  useEffect(() => () => backend?.dispose?.(), [backend])
 
   // A report is "in context" when the summary makes sense: a loaded file, or an
   // open SEC filing.
@@ -283,14 +292,10 @@ export function ChatDrawer({
               <>
                 Connect to the SEC graph in the <strong>Graph</strong> tab first.
               </>
-            ) : report ? (
-              <>
-                This report was opened from a <code>tavi.json</code>, which carries no RDF graph to
-                query. Ask works on a <code>holon.jsonld</code>.
-              </>
             ) : (
               <>
-                Open a <code>holon.jsonld</code> in <strong>File</strong> mode, then ask about it.
+                Open a <code>holon.jsonld</code> or <code>tavi.json</code> in <strong>File</strong>{' '}
+                mode, then ask about it.
               </>
             )}
           </p>

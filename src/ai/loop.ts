@@ -4,20 +4,24 @@
  * Provider-neutral AND backend-neutral: it drives any `ChatBackend` (a tool set +
  * an executor + a system prompt) through a bounded loop — the model calls tools,
  * sees errors fed back as is_error results and retries, then answers. File mode
- * plugs in a local SPARQL backend; SEC mode a remote Cypher/MCP one. Neither the
- * provider nor the tool wiring leaks into this file.
+ * plugs in a local SPARQL (holon) or jq (Tavi) backend; SEC mode a remote
+ * Cypher/MCP one. Neither the provider nor the tool wiring leaks into this file.
  */
 import type { AIMessage, AIProvider, ContentBlock, ToolDef } from './provider'
 
-const MAX_ITERATIONS = 6
+// Enough for describe → a query → two or three corrections → answer. The
+// filing-ladder harness this mirrors sees ~4 turns per question on the
+// describe-and-one-query hand-offs, with 5 on lookups.
+const MAX_ITERATIONS = 8
 // Cap tool results fed back so a large result can't blow the context window.
-const MAX_RESULT_CHARS = 12000
+// filing-ladder's clip; the local tools clip themselves to the same size.
+const MAX_RESULT_CHARS = 60_000
 
 /** One tool execution's outcome. */
 export interface ToolRun {
   content: string
   isError?: boolean
-  /** A query string (SPARQL / Cypher) to surface in the UI reveal. */
+  /** A query string (SPARQL / Cypher / jq) to surface in the UI reveal. */
   query?: string
 }
 
@@ -25,7 +29,7 @@ export interface ToolRun {
 export interface ChatBackend {
   system: string
   tools: ToolDef[]
-  /** Label for the generated-query reveal, e.g. 'SPARQL' or 'Cypher'. */
+  /** Label for the generated-query reveal, e.g. 'SPARQL', 'Cypher' or 'jq'. */
   queryLabel: string
   /**
    * `onProgress` reports what the tool is doing while it runs — the remote
@@ -37,6 +41,8 @@ export interface ChatBackend {
     input: Record<string, unknown>,
     onProgress?: (status: string) => void
   ) => Promise<ToolRun>
+  /** Release what the backend holds (a worker, a document) when it is replaced. */
+  dispose?: () => void
 }
 
 export interface LoopResult {
@@ -60,13 +66,15 @@ export interface LoopOptions {
   model?: string
 }
 
-// Tool name → what to tell the user while it runs. Covers both backends'
+// Tool name → what to tell the user while it runs. Covers every backend's
 // tools; anything unmapped falls back to a generic "Working".
 const TOOL_STATUS: Record<string, string> = {
   describe_report: 'Reading the report',
+  describe_model: 'Reading the model',
   'get-graph-schema': 'Reading the graph schema',
   'get-example-queries': 'Finding query patterns',
   run_sparql: 'Querying the report',
+  run_jq: 'Querying the model',
   'read-graph-cypher': 'Querying the graph',
 }
 
