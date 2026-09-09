@@ -9,7 +9,7 @@ Create a GitHub pull request for the current branch, writing the title and descr
 
 A description written from the diff alone can't know _why_ a change was made, so it tends to describe things that aren't true. **You author it here, where the full context is available.**
 
-This is the **Holon Viewer** — a static, client-side React/Vite renderer for `holon.jsonld` reports, deployed as a bundle behind CloudFront. **There is no backend**, and users supply their own Anthropic, ElevenLabs, and RoboSystems API keys in the browser. **This repository is public.**
+This is the **xbrlkit viewer** — a static, client-side React/Vite renderer for `holon.jsonld` and `tavi.json` reports, deployed as a bundle behind CloudFront. **There is no backend**, and users supply their own Anthropic, ElevenLabs, and RoboSystems API keys in the browser. **This repository is public.**
 
 ## Instructions
 

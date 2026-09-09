@@ -1,11 +1,16 @@
 name: Deploy
 
-# Static-site deploy for robosystems-holon-viewer → S3 + CloudFront.
+# Static-site deploy for xbrlkit-viewer → S3 + CloudFront.
 #
 # Mirrors the RoboSystems app deploy conventions (OIDC via vars.AWS_ROLE_ARN,
 # CloudFormation-managed infra) but collapsed to a single stack because the
-# viewer is a pure-static SPA — no App Runner / ECR. A custom domain is optional
-# (the VIEWER_DOMAIN repo var): when set, the stack adds an ACM cert + Route53 alias.
+# viewer is a pure-static SPA — no App Runner / ECR. Custom domains are
+# optional, from two repo vars: VIEWER_DOMAIN (the canonical name; an apex
+# domain also gets its www. form, redirected to it at the edge) and
+# VIEWER_LEGACY_DOMAIN (an earlier name of the viewer, served as an alias of
+# the same distribution — see the template for why it is never redirected).
+# When set, the stack adds one ACM cert covering every name plus the Route53
+# aliases, each in its own hosted zone.
 #
 # PRECONDITIONS (one-time, before the first successful run):
 #   1. @robosystems/report-components is PUBLISHED to npm, and this app's
@@ -48,7 +53,7 @@ permissions:
 # One deploy at a time: two overlapping runs would race the S3 sync --delete
 # and the CloudFront invalidation.
 concurrency:
-  group: holon-viewer-deploy
+  group: xbrlkit-viewer-deploy
   cancel-in-progress: false
 
 jobs:
@@ -75,10 +80,10 @@ jobs:
 
       - name: Resolve stack name
         # PascalCase, brand-cased, no hyphen — matches the app convention
-        # (e.g. RoboLedgerAppProd) → RoboSystemsHolonViewer{Prod,Staging,Dev}.
+        # (e.g. RoboLedgerAppProd) → XbrlkitViewer{Prod,Staging,Dev}.
         run: |
           ENV="${{ inputs.environment }}"
-          echo "STACK_NAME=RoboSystemsHolonViewer${ENV^}" >> "$GITHUB_ENV"
+          echo "STACK_NAME=XbrlkitViewer${ENV^}" >> "$GITHUB_ENV"
 
       - name: Set up Node.js
         uses: actions/setup-node@v7
@@ -97,24 +102,46 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Resolve custom domain
-        # Domain comes from the VIEWER_DOMAIN repo var (set once, no per-run
-        # override). Unset → serves on the CloudFront URL.
+      - name: Resolve custom domains
+        # Domains come from repo vars (set once, no per-run override).
+        # VIEWER_DOMAIN unset → serves on the CloudFront URL. Each name's
+        # public hosted zone is looked up by its registrable root.
         run: |
+          resolve_zone() {
+            local root
+            root=$(echo "$1" | awk -F. '{print $(NF-1)"."$NF}')
+            aws route53 list-hosted-zones \
+              --query "HostedZones[?Name=='${root}.' && Config.PrivateZone==\`false\`].Id | [0]" \
+              --output text | sed 's#/hostedzone/##'
+          }
           DOMAIN="${{ vars.VIEWER_DOMAIN }}"
           if [ -z "$DOMAIN" ]; then
             echo "VIEWER_DOMAIN unset — serving on the CloudFront URL."
-            { echo "DOMAIN_NAME="; echo "HOSTED_ZONE_ID="; } >> "$GITHUB_ENV"
+            { echo "DOMAIN_NAME="; echo "HOSTED_ZONE_ID="; echo "WWW_DOMAIN_NAME=";
+              echo "LEGACY_DOMAIN_NAME="; echo "LEGACY_HOSTED_ZONE_ID="; } >> "$GITHUB_ENV"
             exit 0
           fi
-          ROOT=$(echo "$DOMAIN" | awk -F. '{print $(NF-1)"."$NF}')
-          ZONE_ID=$(aws route53 list-hosted-zones \
-            --query "HostedZones[?Name=='${ROOT}.'].Id | [0]" --output text | sed 's#/hostedzone/##')
+          ZONE_ID=$(resolve_zone "$DOMAIN")
           if [ -z "$ZONE_ID" ] || [ "$ZONE_ID" = "None" ]; then
-            echo "ERROR: no Route53 hosted zone found for ${ROOT}"; exit 1
+            echo "ERROR: no public Route53 hosted zone found for ${DOMAIN}"; exit 1
           fi
-          echo "Domain ${DOMAIN} → zone ${ROOT} (${ZONE_ID})"
-          { echo "DOMAIN_NAME=${DOMAIN}"; echo "HOSTED_ZONE_ID=${ZONE_ID}"; } >> "$GITHUB_ENV"
+          # An apex domain (two labels) also gets its www. form, redirected to
+          # it at the edge so the viewer keeps one canonical origin.
+          WWW=""
+          if [ "$(echo "$DOMAIN" | awk -F. '{print NF}')" -eq 2 ]; then
+            WWW="www.${DOMAIN}"
+          fi
+          LEGACY="${{ vars.VIEWER_LEGACY_DOMAIN }}"
+          LEGACY_ZONE_ID=""
+          if [ -n "$LEGACY" ]; then
+            LEGACY_ZONE_ID=$(resolve_zone "$LEGACY")
+            if [ -z "$LEGACY_ZONE_ID" ] || [ "$LEGACY_ZONE_ID" = "None" ]; then
+              echo "ERROR: no public Route53 hosted zone found for ${LEGACY}"; exit 1
+            fi
+          fi
+          echo "Domain ${DOMAIN} → zone ${ZONE_ID}${WWW:+ (+ ${WWW})}${LEGACY:+; alias ${LEGACY} → zone ${LEGACY_ZONE_ID}}"
+          { echo "DOMAIN_NAME=${DOMAIN}"; echo "HOSTED_ZONE_ID=${ZONE_ID}"; echo "WWW_DOMAIN_NAME=${WWW}";
+            echo "LEGACY_DOMAIN_NAME=${LEGACY}"; echo "LEGACY_HOSTED_ZONE_ID=${LEGACY_ZONE_ID}"; } >> "$GITHUB_ENV"
 
       - name: Deploy CloudFormation stack
         run: |
@@ -179,6 +206,9 @@ jobs:
               ParameterKey=Namespace,ParameterValue=${{ vars.AWS_ACCOUNT_ID }} \
               ParameterKey=DomainName,ParameterValue=$DOMAIN_NAME \
               ParameterKey=HostedZoneId,ParameterValue=$HOSTED_ZONE_ID \
+              ParameterKey=WwwDomainName,ParameterValue=$WWW_DOMAIN_NAME \
+              ParameterKey=LegacyDomainName,ParameterValue=$LEGACY_DOMAIN_NAME \
+              ParameterKey=LegacyHostedZoneId,ParameterValue=$LEGACY_HOSTED_ZONE_ID \
             2>&1) || true
 
           if echo "$OUTPUT" | grep -q "No updates are to be performed"; then
@@ -236,7 +266,7 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## 🚀 Holon Viewer deployed (${{ inputs.environment }})" >> "$GITHUB_STEP_SUMMARY"
+          echo "## 🚀 xbrlkit viewer deployed (${{ inputs.environment }})" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "**URL:** ${{ steps.outputs.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
           echo "**Bucket:** \`${{ steps.outputs.outputs.bucket }}\`" >> "$GITHUB_STEP_SUMMARY"

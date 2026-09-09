@@ -1,9 +1,11 @@
-# RoboSystems Holon Viewer
+# xbrlkit viewer
 
-RoboSystems Holon Viewer is a static, client-side renderer for `holon.jsonld` financial reports — the analog of Arelle's `ixbrl-viewer`. A holon is a portable RDF artifact, not self-rendering HTML, so the viewer reconstructs the financial statements from the graph and layers on interactive inspection, in-browser SPARQL, and AI analysis. No sign-up and no backend — open a file and go.
+The xbrlkit viewer is the browser side of [xbrlkit](https://github.com/RoboFinSystems/xbrlkit): a static, client-side renderer for `holon.jsonld` and `tavi.json` financial reports — the analog of Arelle's `ixbrl-viewer`. A holon is a portable RDF artifact and a Tavi model is compiled JSON, not self-rendering HTML, so the viewer reconstructs the financial statements from the document and layers on interactive inspection, in-browser query, and AI analysis. No sign-up and no backend — open a file and go.
 
-- **File Mode**: Open a local `holon.jsonld` or `tavi.json` (the same filing as a Project Tavi compiled model) and render the full report — offline, no API key, no backend, no network call. A report on the web opens by link: `/?url=https://…/holon.jsonld` (or `…/tavi.json`) (the host must allow cross-origin reads; the RoboSystems public data CDN does). Try it locally with `npm run preview` — the dev server cannot serve a `?url=` link, Vite reserves that query for asset imports.
-- **SEC Mode**: Search any public company and pull its report from the live SEC knowledge graph with your own RoboSystems API key. Same renderer; the authenticated call is made client-side.
+**Live at <https://xbrlkit.com>.** From the command line, `uvx xbrlkit view NVDA` renders a filing here without downloading anything by hand. The viewer is a RoboSystems project; the earlier `holon.robosystems.ai` address keeps working as an alias.
+
+- **File Mode**: Open a local `holon.jsonld` or `tavi.json` (the same filing as a Project Tavi compiled model) and render the full report — offline, no API key, no backend, no network call. A report on the web opens by link: `/?url=https://…/holon.jsonld` (or `…/tavi.json`) (the host must allow cross-origin reads; the RoboSystems public data CDN does, and so does `xbrlkit view`'s loopback server). Try it locally with `npm run preview` — the dev server cannot serve a `?url=` link, Vite reserves that query for asset imports.
+- **Graph Mode**: Search any public company and pull its report from the live SEC knowledge graph with your own RoboSystems API key. Same renderer; the authenticated call is made client-side.
 - **Statement Rendering**: Reconstructs the complete report — balance sheet, income statement, cash flow, equity, and every disclosure section — from the holon's scene / boundary / projection named graphs, with a table-of-contents sidebar for navigation.
 - **Dimensional Facts & Disclosures**: Renders dimensional breakdowns (segments and other axes) and text-block note disclosures alongside the numeric statements, at full fidelity.
 - **Fact Inspection**: Inspect any fact — its element, period, unit, and the calculation rule it participates in — directly in the statement tables.
@@ -20,11 +22,11 @@ npm install      # Install dependencies
 npm run dev      # Start the dev server (Vite, default http://localhost:5173)
 ```
 
-Open the bundled sample report, or drag in your own `holon.jsonld`. Build a holon from any SEC filing with [`xbrlkit`](https://github.com/RoboFinSystems/xbrlkit).
+Open the bundled sample report, or drag in your own `holon.jsonld` or `tavi.json`. Build either from any SEC filing with [`xbrlkit`](https://github.com/RoboFinSystems/xbrlkit), or skip the file entirely: `uvx xbrlkit view NVDA` serves a filing from your machine and opens it in the hosted viewer.
 
 ### Configuration
 
-File Mode needs no configuration. For **SEC Mode**, the viewer talks to the RoboSystems API — production (`https://api.robosystems.ai`) by default. To point it at a local backend, copy the env template and set the URL:
+File Mode needs no configuration. For **Graph Mode**, the viewer talks to the RoboSystems API — production (`https://api.robosystems.ai`) by default. To point it at a local backend, copy the env template and set the URL:
 
 ```bash
 cp .env.example .env
@@ -80,7 +82,7 @@ npm run feature:create   # Create a feature branch
 Keys are entered in the app's keys drawer and stored only in your browser.
 
 - **File Mode** needs none.
-- **RoboSystems API key** — for SEC Mode (pull live company reports)
+- **RoboSystems API key** — for Graph Mode (pull live company reports)
 - **Anthropic API key** — for AI analysis and summaries
 - **ElevenLabs API key** ([get one](https://try.elevenlabs.io/v9z3wzm97gk3)) — for voice / read-aloud
 
@@ -89,6 +91,7 @@ Keys are entered in the app's keys drawer and stored only in your browser.
 - Fork this repo
 - AWS account with IAM Identity Center (SSO)
 - S3 + CloudFront for static hosting, provisioned via CloudFormation
+- Custom domains are optional, from two repo variables: `VIEWER_DOMAIN` (the canonical name, in a public Route53 hosted zone; an apex domain also gets its `www.` form, redirected to it at the edge) and `VIEWER_LEGACY_DOMAIN` (an earlier name, served as an alias of the same distribution — never redirected, because a published `xbrlkit view` allows only the origin it was built with to read the report it serves)
 - A `production` GitHub environment on the repo (required reviewer; deployment refs `main`, `release/*`): the deploy workflow's gate job binds it, so every production deploy pauses for approval
 
 ## Architecture
@@ -99,11 +102,11 @@ Keys are entered in the app's keys drawer and stored only in your browser.
 - [`@robosystems/report-components`](https://github.com/RoboFinSystems/robosystems-report-components) — the source-agnostic rendering library shared with the RoboLedger app and others; this repo is the shell around it
 - N3.js quad store + Comunica for in-browser RDF and SPARQL; jq-wasm (in a Web Worker) for in-browser jq over Tavi models
 - Anthropic SDK for AI; ElevenLabs for voice
-- `@robosystems/client` (RoboSystems TypeScript SDK) for SEC-mode reads
+- `@robosystems/client` (RoboSystems TypeScript SDK) for Graph Mode reads
 
 **Rendering:**
 
-The render logic is not in this app — it lives in `@robosystems/report-components`. The viewer supplies two read-only adapters (a `holon.jsonld` file parser and a SEC graph client) plus the UI shell: file-drop / SEC-connect UX, fact inspection, chat, voice, and branding.
+The render logic is not in this app — it lives in `@robosystems/report-components`. The viewer supplies read-only adapters (the `holon.jsonld` and `tavi.json` file parsers and a SEC graph client) plus the UI shell: file-drop / graph-connect UX, fact inspection, chat, voice, and branding.
 
 **Infrastructure:**
 
@@ -118,7 +121,7 @@ The render logic is not in this app — it lives in `@robosystems/report-compone
 
 ## Support
 
-- [Issues](https://github.com/RoboFinSystems/robosystems-holon-viewer/issues)
+- [Issues](https://github.com/RoboFinSystems/xbrlkit-viewer/issues)
 - [Wiki](https://github.com/RoboFinSystems/robosystems/wiki)
 - [Discussions](https://github.com/orgs/RoboFinSystems/discussions)
 

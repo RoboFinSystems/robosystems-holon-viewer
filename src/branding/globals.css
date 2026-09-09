@@ -1,4 +1,5 @@
-/* RoboSystems branding for the Holon Viewer.
+/* xbrlkit viewer branding — the RoboSystems palette and fonts, since the
+ * viewer is a RoboSystems project.
  *
  * Palette + fonts copied from the RoboSystems app (see BRANDING.md). The
  * `--rs-*` custom properties below are also what `@robosystems/report-components`
@@ -142,16 +143,17 @@ body {
   gap: 0.75rem;
 }
 
-.brand-logo {
-  height: 36px;
-  width: auto;
-}
-
 .brand-name {
   font-family: var(--rs-font-heading);
   font-weight: 700;
   font-size: 1.05rem;
   letter-spacing: 0.04em;
+}
+
+/* The wordmark is "xbrlkit", lowercase like the package; "viewer" is the tool. */
+.brand-name-tool {
+  font-weight: 400;
+  opacity: 0.85;
 }
 
 .mode-switch {
@@ -213,6 +215,11 @@ body {
 .app-footer-link svg {
   width: 0.95rem;
   height: 0.95rem;
+}
+
+.app-footer-logo {
+  height: 0.95rem;
+  width: auto;
 }
 
 /* ── Chat drawer (right-side, pushes the content) ── */

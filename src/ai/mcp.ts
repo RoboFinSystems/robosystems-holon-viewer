@@ -32,7 +32,7 @@ const DEFAULT_API_URL = viteEnv?.DEV
 /** The revision we ask for at initialize; the server answers with what it can serve. */
 const PROTOCOL_VERSION = '2025-06-18'
 
-const CLIENT_INFO = { name: 'robosystems-holon-viewer', version: '0.1.0' }
+const CLIENT_INFO = { name: 'xbrlkit-viewer', version: '0.1.0' }
 
 /** One tool call's outcome. A tool that failed still returns its message. */
 export interface McpToolRun {
