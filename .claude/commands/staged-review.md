@@ -4,7 +4,7 @@ description: Review the staged diff against this viewer's bring-your-own-keys mo
 
 Review all staged changes (`git diff --cached`) with focus on the contexts below. Read the diff first — if nothing is staged, say so rather than reviewing the working tree.
 
-This is the **Holon Viewer**: a static, client-side React/Vite renderer for `holon.jsonld` financial reports. **There is no backend.** SPARQL runs in the browser (Comunica), the AI agent calls Anthropic directly from the browser, and the user's API keys live only in their browser. It is a **public repository**.
+This is the **xbrlkit viewer**: a static, client-side React/Vite renderer for `holon.jsonld` and `tavi.json` financial reports. **There is no backend.** SPARQL runs in the browser (Comunica), the AI agent calls Anthropic directly from the browser, and the user's API keys live only in their browser. It is a **public repository**.
 
 ## Bring-your-own-keys — the highest-stakes property in this repo
 
@@ -36,7 +36,7 @@ If the diff adds any outbound call, name every destination and confirm it's a pr
 ## Build and quality
 
 - `npm run test:all` is `format:check` → `lint` → `typecheck` → `test` → `build` — **check-only**, so it fails rather than reformatting. Fix and re-stage.
-- The build is Vite; the output is a static bundle deployed to CloudFront/S3 (`RoboSystemsHolonViewer`). There is no server to fix a mistake at runtime.
+- The build is Vite; the output is a static bundle deployed to CloudFront/S3 (`XbrlkitViewer`). There is no server to fix a mistake at runtime.
 
 ## Public-repo hygiene
 

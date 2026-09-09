@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://holon.robosystems.ai/sitemap.xml
+Sitemap: https://xbrlkit.com/sitemap.xml

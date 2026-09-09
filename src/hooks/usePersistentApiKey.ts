@@ -16,6 +16,9 @@
  */
 import { useCallback, useEffect, useState } from 'react'
 
+// The storage namespace keeps the viewer's original name on purpose: every
+// persisted key (here and in the sibling hooks) lives under it, and renaming
+// it would silently drop each visitor's saved keys. Nobody sees the prefix.
 const STORAGE_PREFIX = 'holon-viewer:apikey:'
 // Same-tab change signal — the `storage` event only fires in OTHER tabs, so this
 // keeps two instances of the same slot in one tab in sync (e.g. the chat

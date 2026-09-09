@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "RoboSystems Holon Viewer Dev",
+      "label": "xbrlkit viewer Dev",
       "type": "shell",
       "command": "npm run dev",
       "isBackground": true,

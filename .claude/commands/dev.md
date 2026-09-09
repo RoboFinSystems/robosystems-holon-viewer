@@ -2,7 +2,7 @@
 description: Start the viewer's dev server and verify it renders.
 ---
 
-Start the Vite dev server for the Holon Viewer.
+Start the Vite dev server for the xbrlkit viewer.
 
 ## Prerequisites
 

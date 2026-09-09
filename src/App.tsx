@@ -59,8 +59,9 @@ export function App() {
     <div className="app">
       <header className="app-header">
         <div className="brand">
-          <img className="brand-logo" src="/images/logos/logo_black.png" alt="RoboSystems" />
-          <div className="brand-name">RoboSystems Holon Viewer</div>
+          <div className="brand-name">
+            xbrlkit <span className="brand-name-tool">viewer</span>
+          </div>
         </div>
 
         <div className="header-right">
@@ -118,7 +119,16 @@ export function App() {
             <span>© 2026 RFS LLC. All rights reserved.</span>
             <a
               className="app-footer-link"
-              href="https://github.com/RoboFinSystems/robosystems-holon-viewer"
+              href="https://robosystems.ai"
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <img className="app-footer-logo" src="/images/logos/logo_black.png" alt="" />a
+              RoboSystems project
+            </a>
+            <a
+              className="app-footer-link"
+              href="https://github.com/RoboFinSystems/xbrlkit-viewer"
               target="_blank"
               rel="noreferrer noopener"
             >
