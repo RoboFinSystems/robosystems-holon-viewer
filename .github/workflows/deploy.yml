@@ -221,10 +221,29 @@ jobs:
           fi
 
       - name: Wait for stack to settle
+        # Poll the stack's own status rather than an AWS waiter: the waiters
+        # are per-operation (create vs update), the wrong one returns at once,
+        # and the old `|| true` then let the S3 sync run while CloudFront was
+        # still applying an update (2026-09-09). A stack that had nothing to
+        # update is already *_COMPLETE and passes on the first poll.
         run: |
-          aws cloudformation wait stack-create-complete --stack-name "$STACK_NAME" 2>/dev/null \
-            || aws cloudformation wait stack-update-complete --stack-name "$STACK_NAME" 2>/dev/null \
-            || true
+          for i in $(seq 1 56); do
+            STATUS=$(aws cloudformation describe-stacks --stack-name "$STACK_NAME" \
+              --query 'Stacks[0].StackStatus' --output text)
+            case "$STATUS" in
+              *_IN_PROGRESS)
+                echo "$STATUS (poll $i)"; sleep 30 ;;
+              CREATE_COMPLETE|UPDATE_COMPLETE)
+                echo "Stack $STATUS"; exit 0 ;;
+              *)
+                echo "ERROR: stack ended in $STATUS"
+                aws cloudformation describe-stack-events --stack-name "$STACK_NAME" --max-items 20 \
+                  --query 'StackEvents[?contains(ResourceStatus, `FAILED`)].[LogicalResourceId,ResourceStatusReason]' \
+                  --output text
+                exit 1 ;;
+            esac
+          done
+          echo "ERROR: stack still in progress after 28 minutes"; exit 1
 
       - name: Read stack outputs
         id: outputs
